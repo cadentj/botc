@@ -1,0 +1,34 @@
+app = "botc-server"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+  dockerfile_path = "apps/server/Dockerfile"
+
+[env]
+  PORT = "3000"
+  NODE_ENV = "production"
+  DATABASE_URL = "/data/botc.db"
+
+[[services]]
+  internal_port = 3000
+  protocol = "tcp"
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  [[services.tcp_checks]]
+    interval = "15s"
+    timeout = "2s"
+    grace_period = "1s"
+
+[[mounts]]
+  source = "botc_data"
+  destination = "/data"
+
