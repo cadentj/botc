@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "78eab8dc-420b-4d25-b4f2-7981b91fe947",
+  "id": "48b7d145-1f77-4bcc-b19d-54690d41eedf",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "grimoire_tokens": {
@@ -178,13 +178,6 @@
           "notNull": true,
           "autoincrement": false
         },
-        "session_token": {
-          "name": "session_token",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
         "is_storyteller": {
           "name": "is_storyteller",
           "type": "integer",
@@ -201,15 +194,7 @@
           "autoincrement": false
         }
       },
-      "indexes": {
-        "players_session_token_unique": {
-          "name": "players_session_token_unique",
-          "columns": [
-            "session_token"
-          ],
-          "isUnique": true
-        }
-      },
+      "indexes": {},
       "foreignKeys": {
         "players_lobby_id_lobbies_id_fk": {
           "name": "players_lobby_id_lobbies_id_fk",

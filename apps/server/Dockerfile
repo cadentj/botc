@@ -9,6 +9,7 @@ COPY apps/server/ ./apps/server/
 
 # Install dependencies and build
 RUN pnpm install --frozen-lockfile
+RUN pnpm --filter @org/types build
 RUN pnpm --filter @botc/server build
 
 # Create pruned production bundle

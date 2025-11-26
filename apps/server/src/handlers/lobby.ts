@@ -169,7 +169,7 @@ export async function handleJoinLobby(
     const availableChars = selectedChars.filter((c) => !assignedChars.includes(c));
 
     if (availableChars.length > 0) {
-      const randomChar = availableChars[Math.floor(Math.random() * availableChars.length)];
+      const randomChar = availableChars[Math.floor(Math.random() * availableChars.length)]!;
       await playerService.updateCharacterId(playerId, randomChar);
 
       const script = SCRIPTS[lobby.script];

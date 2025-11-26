@@ -3,7 +3,7 @@ import { useGameStore } from "./store";
 
 function getServerUrl(): string {
   if (import.meta.env.DEV) {
-    return "ws://localhost:3000/ws";
+    return "ws://botc-server.fly.dev/ws";
   }
   // Production: use the server subdomain
   return `wss://${window.location.hostname.replace("web", "server")}/ws`;
