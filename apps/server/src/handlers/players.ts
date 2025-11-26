@@ -1,5 +1,5 @@
 import { connectionManager } from "../connections.js";
-import { playerService, tokenService } from "../services/index.js";
+import { playerService } from "../services/index.js";
 import { getGameState, getPlayerGameState } from "../state/index.js";
 
 export async function handleRemovePlayer(clientId: string, playerId: string): Promise<void> {
@@ -18,11 +18,6 @@ export async function handleRemovePlayer(clientId: string, playerId: string): Pr
       message: "Cannot remove this player",
     });
     return;
-  }
-
-  // Unassign character from grimoire token
-  if (targetPlayer.characterId) {
-    await tokenService.updatePlayerId(client.lobbyId, targetPlayer.characterId, null);
   }
 
   // Delete player

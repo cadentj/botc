@@ -40,6 +40,8 @@ Game Flow
 6. While players are joining the game, the storyteller can drag tokens corresponding to the characters around a virtual grimoire. Dragging tokens / arranging them is useful for the story teller to keep track of where users are in a room. 
    - The story teller has another tab with an info sheet that just has the order of what roles to visit each night. 
 
+(decided against some parts of the above plan)
+
 ---
 
-7. the 
+7. 

@@ -27,6 +27,14 @@ function validateCharacterSelection(
     return { valid: false, error: "Unknown character in selection" };
   }
 
+  const hasBaron = characterIds.includes("baron");
+  const adjustedComposition = {
+    townsfolk: composition.townsfolk - (hasBaron ? 2 : 0),
+    outsiders: composition.outsiders + (hasBaron ? 2 : 0),
+    minions: composition.minions,
+    demons: composition.demons,
+  };
+
   const counts = {
     townsfolk: characters.filter((c) => c?.type === "townsfolk").length,
     outsiders: characters.filter((c) => c?.type === "outsider").length,
@@ -34,17 +42,17 @@ function validateCharacterSelection(
     demons: characters.filter((c) => c?.type === "demon").length,
   };
 
-  if (counts.townsfolk !== composition.townsfolk) {
-    return { valid: false, error: `Need ${composition.townsfolk} townsfolk, got ${counts.townsfolk}` };
+  if (counts.townsfolk !== adjustedComposition.townsfolk) {
+    return { valid: false, error: `Need ${adjustedComposition.townsfolk} townsfolk, got ${counts.townsfolk}` };
   }
-  if (counts.outsiders !== composition.outsiders) {
-    return { valid: false, error: `Need ${composition.outsiders} outsiders, got ${counts.outsiders}` };
+  if (counts.outsiders !== adjustedComposition.outsiders) {
+    return { valid: false, error: `Need ${adjustedComposition.outsiders} outsiders, got ${counts.outsiders}` };
   }
-  if (counts.minions !== composition.minions) {
-    return { valid: false, error: `Need ${composition.minions} minions, got ${counts.minions}` };
+  if (counts.minions !== adjustedComposition.minions) {
+    return { valid: false, error: `Need ${adjustedComposition.minions} minions, got ${counts.minions}` };
   }
-  if (counts.demons !== composition.demons) {
-    return { valid: false, error: `Need ${composition.demons} demons, got ${counts.demons}` };
+  if (counts.demons !== adjustedComposition.demons) {
+    return { valid: false, error: `Need ${adjustedComposition.demons} demons, got ${counts.demons}` };
   }
 
   return { valid: true };
@@ -66,7 +74,18 @@ export function CharacterSelect({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const scriptData = SCRIPTS[script];
-  const composition = TEAM_COMPOSITION[playerCount];
+  const baseComposition = TEAM_COMPOSITION[playerCount];
+
+  // Calculate adjusted composition if Baron is selected
+  const adjustedComposition = useMemo(() => {
+    const hasBaron = selectedIds.has("baron");
+    return {
+      townsfolk: baseComposition.townsfolk - (hasBaron ? 2 : 0),
+      outsiders: baseComposition.outsiders + (hasBaron ? 2 : 0),
+      minions: baseComposition.minions,
+      demons: baseComposition.demons,
+    };
+  }, [baseComposition, selectedIds]);
 
   const charactersByType = useMemo(() => {
     if (!scriptData) return {};
@@ -121,20 +140,20 @@ export function CharacterSelect({
     }
   };
 
-  if (!scriptData || !composition) {
+  if (!scriptData || !baseComposition) {
     return <div className="text-destructive">Invalid configuration</div>;
   }
 
   const isTypeFull = (type: string): boolean => {
     switch (type) {
       case "townsfolk":
-        return currentCounts.townsfolk >= composition.townsfolk;
+        return currentCounts.townsfolk >= adjustedComposition.townsfolk;
       case "outsider":
-        return currentCounts.outsiders >= composition.outsiders;
+        return currentCounts.outsiders >= adjustedComposition.outsiders;
       case "minion":
-        return currentCounts.minions >= composition.minions;
+        return currentCounts.minions >= adjustedComposition.minions;
       case "demon":
-        return currentCounts.demons >= composition.demons;
+        return currentCounts.demons >= adjustedComposition.demons;
       default:
         return false;
     }
@@ -155,17 +174,17 @@ export function CharacterSelect({
           Choose characters for {playerCount} players
         </p>
         <div className="flex justify-center gap-4 flex-wrap mt-4">
-          <Badge variant={currentCounts.townsfolk === composition.townsfolk ? "default" : "outline"}>
-            Townsfolk: {currentCounts.townsfolk}/{composition.townsfolk}
+          <Badge variant={currentCounts.townsfolk === adjustedComposition.townsfolk ? "default" : "outline"}>
+            Townsfolk: {currentCounts.townsfolk}/{adjustedComposition.townsfolk}
           </Badge>
-          <Badge variant={currentCounts.outsiders === composition.outsiders ? "default" : "outline"}>
-            Outsiders: {currentCounts.outsiders}/{composition.outsiders}
+          <Badge variant={currentCounts.outsiders === adjustedComposition.outsiders ? "default" : "outline"}>
+            Outsiders: {currentCounts.outsiders}/{adjustedComposition.outsiders}
           </Badge>
-          <Badge variant={currentCounts.minions === composition.minions ? "default" : "outline"}>
-            Minions: {currentCounts.minions}/{composition.minions}
+          <Badge variant={currentCounts.minions === adjustedComposition.minions ? "default" : "outline"}>
+            Minions: {currentCounts.minions}/{adjustedComposition.minions}
           </Badge>
-          <Badge variant={currentCounts.demons === composition.demons ? "default" : "outline"}>
-            Demons: {currentCounts.demons}/{composition.demons}
+          <Badge variant={currentCounts.demons === adjustedComposition.demons ? "default" : "outline"}>
+            Demons: {currentCounts.demons}/{adjustedComposition.demons}
           </Badge>
         </div>
       </header>

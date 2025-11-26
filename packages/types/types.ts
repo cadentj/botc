@@ -6,41 +6,41 @@ export interface Character {
   name: string;
   type: CharacterType;
   ability: string;
+  icon: string; // Lucide icon name
   firstNightOrder?: number; // Order to wake on first night (undefined = doesn't wake)
   otherNightOrder?: number; // Order to wake on other nights (undefined = doesn't wake)
 }
 
-// Placeholder Trouble Brewing characters - fill in real data later
 export const TROUBLE_BREWING: Character[] = [
   // Townsfolk (13)
-  { id: "washerwoman", name: "Washerwoman", type: "townsfolk", ability: "TODO: You start knowing...", firstNightOrder: 1 },
-  { id: "librarian", name: "Librarian", type: "townsfolk", ability: "TODO: You start knowing...", firstNightOrder: 2 },
-  { id: "investigator", name: "Investigator", type: "townsfolk", ability: "TODO: You start knowing...", firstNightOrder: 3 },
-  { id: "chef", name: "Chef", type: "townsfolk", ability: "TODO: You start knowing...", firstNightOrder: 4 },
-  { id: "empath", name: "Empath", type: "townsfolk", ability: "TODO: Each night...", firstNightOrder: 5, otherNightOrder: 1 },
-  { id: "fortune_teller", name: "Fortune Teller", type: "townsfolk", ability: "TODO: Each night...", firstNightOrder: 6, otherNightOrder: 2 },
-  { id: "undertaker", name: "Undertaker", type: "townsfolk", ability: "TODO: Each night...", otherNightOrder: 3 },
-  { id: "monk", name: "Monk", type: "townsfolk", ability: "TODO: Each night...", otherNightOrder: 4 },
-  { id: "ravenkeeper", name: "Ravenkeeper", type: "townsfolk", ability: "TODO: If you die at night..." },
-  { id: "virgin", name: "Virgin", type: "townsfolk", ability: "TODO: The first time you are nominated..." },
-  { id: "slayer", name: "Slayer", type: "townsfolk", ability: "TODO: Once per game, during the day..." },
-  { id: "soldier", name: "Soldier", type: "townsfolk", ability: "TODO: You are safe from the Demon." },
-  { id: "mayor", name: "Mayor", type: "townsfolk", ability: "TODO: If only 3 players live..." },
+  { id: "washerwoman", name: "Washerwoman", type: "townsfolk", ability: "You start knowing that 1 of 2 players is a particular Townsfolk.", icon: "Shirt", firstNightOrder: 5 },
+  { id: "librarian", name: "Librarian", type: "townsfolk", ability: "You start knowing that 1 of 2 players is a particular Outsider. (Or that zero are in play.)", icon: "BookOpen", firstNightOrder: 6 },
+  { id: "investigator", name: "Investigator", type: "townsfolk", ability: "You start knowing that 1 of 2 players is a particular Minion.", icon: "Search", firstNightOrder: 7 },
+  { id: "chef", name: "Chef", type: "townsfolk", ability: "You start knowing how many pairs of evil players there are.", icon: "ChefHat", firstNightOrder: 8 },
+  { id: "empath", name: "Empath", type: "townsfolk", ability: "Each night, you learn how many of your 2 alive neighbours are evil.", icon: "Heart", firstNightOrder: 9, otherNightOrder: 8 },
+  { id: "fortune_teller", name: "Fortune Teller", type: "townsfolk", ability: "Each night, choose 2 players: you learn if either is a Demon. There is a good player that registers as a Demon to you.", icon: "Sparkles", firstNightOrder: 10, otherNightOrder: 9 },
+  { id: "undertaker", name: "Undertaker", type: "townsfolk", ability: "Each night*, you learn which character died by execution today.", icon: "Skull", otherNightOrder: 7 },
+  { id: "monk", name: "Monk", type: "townsfolk", ability: "Each night*, choose a player (not yourself): they are safe from the Demon tonight.", icon: "Shield", otherNightOrder: 2 },
+  { id: "ravenkeeper", name: "Ravenkeeper", type: "townsfolk", ability: "If you die at night, you are woken to choose a player: you learn their character.", icon: "Bird", otherNightOrder: 6 },
+  { id: "virgin", name: "Virgin", type: "townsfolk", ability: "The 1st time you are nominated, if the nominator is a Townsfolk, they are executed immediately.", icon: "Flower2" },
+  { id: "slayer", name: "Slayer", type: "townsfolk", ability: "Once per game, during the day, publicly choose a player: if they are the Demon, they die.", icon: "Crosshair" },
+  { id: "soldier", name: "Soldier", type: "townsfolk", ability: "You are safe from the Demon.", icon: "Swords" },
+  { id: "mayor", name: "Mayor", type: "townsfolk", ability: "If only 3 players live & no execution occurs, your team wins. If you die at night, another player might die instead.", icon: "Crown" },
 
   // Outsiders (4)
-  { id: "butler", name: "Butler", type: "outsider", ability: "TODO: Each night, choose a player...", firstNightOrder: 7, otherNightOrder: 5 },
-  { id: "drunk", name: "Drunk", type: "outsider", ability: "TODO: You do not know you are the Drunk..." },
-  { id: "recluse", name: "Recluse", type: "outsider", ability: "TODO: You might register as evil..." },
-  { id: "saint", name: "Saint", type: "outsider", ability: "TODO: If you die by execution..." },
+  { id: "butler", name: "Butler", type: "outsider", ability: "Each night, choose a player (not yourself): tomorrow, you may only vote if they are voting too.", icon: "Wine", firstNightOrder: 11, otherNightOrder: 10 },
+  { id: "drunk", name: "Drunk", type: "outsider", ability: "You do not know you are the Drunk. You think you are a Townsfolk character, but you are not.", icon: "Beer" },
+  { id: "recluse", name: "Recluse", type: "outsider", ability: "You might register as evil & as a Minion or Demon, even if dead.", icon: "Ghost" },
+  { id: "saint", name: "Saint", type: "outsider", ability: "If you die by execution, your team loses.", icon: "Cross" },
 
   // Minions (4)
-  { id: "poisoner", name: "Poisoner", type: "minion", ability: "TODO: Each night, choose a player...", firstNightOrder: 8, otherNightOrder: 6 },
-  { id: "spy", name: "Spy", type: "minion", ability: "TODO: Each night, you see the Grimoire...", firstNightOrder: 9, otherNightOrder: 7 },
-  { id: "baron", name: "Baron", type: "minion", ability: "TODO: There are extra Outsiders in play." },
-  { id: "scarlet_woman", name: "Scarlet Woman", type: "minion", ability: "TODO: If there are 5 or more players alive..." },
+  { id: "poisoner", name: "Poisoner", type: "minion", ability: "Each night, choose a player: they are poisoned tonight and tomorrow day.", icon: "FlaskConical", firstNightOrder: 3, otherNightOrder: 1 },
+  { id: "spy", name: "Spy", type: "minion", ability: "Each night, you see the Grimoire. You might register as good & as a Townsfolk or Outsider, even if dead.", icon: "Eye", firstNightOrder: 4, otherNightOrder: 3 },
+  { id: "baron", name: "Baron", type: "minion", ability: "There are extra Outsiders in play. [+2 Outsiders]", icon: "Castle" },
+  { id: "scarlet_woman", name: "Scarlet Woman", type: "minion", ability: "If there are 5 or more players alive (Travellers don't count) & the Demon dies, you become the Demon.", icon: "HeartCrack", otherNightOrder: 4 },
 
   // Demons (1)
-  { id: "imp", name: "Imp", type: "demon", ability: "TODO: Each night, choose a player...", otherNightOrder: 8 },
+  { id: "imp", name: "Imp", type: "demon", ability: "Each night*, choose a player: they die. If you kill yourself this way, a Minion becomes the Imp.", icon: "Flame", otherNightOrder: 5 },
 ];
 
 // Team composition rules by player count
@@ -144,3 +144,29 @@ export function getOtherNightOrder(characters: Character[]): Character[] {
     .filter((c) => c.otherNightOrder !== undefined)
     .sort((a, b) => (a.otherNightOrder ?? 0) - (b.otherNightOrder ?? 0));
 }
+
+// Helper tokens for tracking game state
+export interface HelperToken {
+  id: string;
+  name: string;
+  forCharacter: string; // character id that provides this token
+}
+
+export const HELPER_TOKENS: HelperToken[] = [
+  // Townsfolk
+  { id: "washerwoman_townsfolk", name: "Townsfolk", forCharacter: "washerwoman" },
+  { id: "washerwoman_decoy", name: "Decoy", forCharacter: "washerwoman" },
+  { id: "librarian_outsider", name: "Outsider", forCharacter: "librarian" },
+  { id: "librarian_decoy", name: "Decoy", forCharacter: "librarian" },
+  { id: "investigator_minion", name: "Minion", forCharacter: "investigator" },
+  { id: "investigator_decoy", name: "Decoy", forCharacter: "investigator" },
+  { id: "fortune_teller_decoy", name: "Decoy", forCharacter: "fortune_teller" },
+  { id: "monk_protected", name: "Protected", forCharacter: "monk" },
+  // Outsiders
+  { id: "butler_master", name: "Master", forCharacter: "butler" },
+  { id: "drunk_is_the_drunk", name: "Is the Drunk", forCharacter: "drunk" },
+  // Minions
+  { id: "poisoner_poisoned", name: "Poisoned", forCharacter: "poisoner" },
+  // Demons
+  { id: "imp_die", name: "Die", forCharacter: "imp" },
+];

@@ -1,6 +1,7 @@
 import type { ScriptId } from "@org/types";
 import { SCRIPTS, getFirstNightOrder, getOtherNightOrder } from "@org/types";
 import { Button } from "@/components/ui/button";
+import { CharacterIcon } from "./CharacterToken";
 
 interface NightOrderSheetProps {
   characterIds: string[];
@@ -33,6 +34,11 @@ export function NightOrderSheet({
 
   const firstNight = getFirstNightOrder(selectedCharacters);
   const otherNights = getOtherNightOrder(selectedCharacters);
+  
+  // Characters without night actions (no firstNightOrder or otherNightOrder)
+  const noNightAction = selectedCharacters.filter(
+    (c) => c.firstNightOrder === undefined && c.otherNightOrder === undefined
+  );
 
   const typeColors: Record<string, string> = {
     townsfolk: "border-l-blue-500",
@@ -63,7 +69,10 @@ export function NightOrderSheet({
                   <span className="absolute -left-8 w-6 h-6 bg-muted rounded-full flex items-center justify-center text-xs text-muted-foreground">
                     {index + 1}
                   </span>
-                  <span className="font-semibold text-foreground">{char.name}</span>
+                  <div className="flex items-center gap-2">
+                    <CharacterIcon iconName={char.icon} className="text-foreground" size={18} />
+                    <span className="font-semibold text-foreground">{char.name}</span>
+                  </div>
                   <span className="text-sm text-muted-foreground">{char.ability}</span>
                 </li>
               ))}
@@ -86,13 +95,36 @@ export function NightOrderSheet({
                   <span className="absolute -left-8 w-6 h-6 bg-muted rounded-full flex items-center justify-center text-xs text-muted-foreground">
                     {index + 1}
                   </span>
-                  <span className="font-semibold text-foreground">{char.name}</span>
+                  <div className="flex items-center gap-2">
+                    <CharacterIcon iconName={char.icon} className="text-foreground" size={18} />
+                    <span className="font-semibold text-foreground">{char.name}</span>
+                  </div>
                   <span className="text-sm text-muted-foreground">{char.ability}</span>
                 </li>
               ))}
             </ol>
           )}
         </section>
+
+        {noNightAction.length > 0 && (
+          <section className="flex-1">
+            <h2 className="text-xl mb-4 text-[#c9a227]">No Night Action</h2>
+            <ul className="list-none p-0 m-0">
+              {noNightAction.map((char) => (
+                <li
+                  key={char.id}
+                  className={`flex flex-col gap-1 p-3 mb-2 bg-card rounded-md border-l-4 ${typeColors[char.type] || ""}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <CharacterIcon iconName={char.icon} className="text-foreground" size={18} />
+                    <span className="font-semibold text-foreground">{char.name}</span>
+                  </div>
+                  <span className="text-sm text-muted-foreground">{char.ability}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </div>
     </div>
   );
