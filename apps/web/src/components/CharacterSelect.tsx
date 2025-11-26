@@ -2,6 +2,9 @@ import { useState, useMemo } from "react";
 import { CharacterCard } from "./CharacterToken";
 import type { ScriptId, Character } from "@org/types";
 import { SCRIPTS, TEAM_COMPOSITION } from "@org/types";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Utility: Validate character selection against composition rules
 function validateCharacterSelection(
@@ -119,7 +122,7 @@ export function CharacterSelect({
   };
 
   if (!scriptData || !composition) {
-    return <div className="character-select-error">Invalid configuration</div>;
+    return <div className="text-destructive">Invalid configuration</div>;
   }
 
   const isTypeFull = (type: string): boolean => {
@@ -137,37 +140,44 @@ export function CharacterSelect({
     }
   };
 
+  const typeColors: Record<string, string> = {
+    townsfolk: "border-l-blue-500",
+    outsider: "border-l-cyan-500",
+    minion: "border-l-orange-500",
+    demon: "border-l-red-500",
+  };
+
   return (
-    <div className="character-select">
-      <header className="character-select-header">
-        <h1>Select Characters</h1>
-        <p className="subtitle">
+    <div className="max-w-6xl mx-auto flex flex-col gap-6">
+      <header className="text-center">
+        <h1 className="text-3xl font-serif mb-2 text-foreground">Select Characters</h1>
+        <p className="text-muted-foreground mb-4">
           Choose characters for {playerCount} players
         </p>
-        <div className="composition-summary">
-          <span className={currentCounts.townsfolk === composition.townsfolk ? "complete" : ""}>
+        <div className="flex justify-center gap-4 flex-wrap mt-4">
+          <Badge variant={currentCounts.townsfolk === composition.townsfolk ? "default" : "outline"}>
             Townsfolk: {currentCounts.townsfolk}/{composition.townsfolk}
-          </span>
-          <span className={currentCounts.outsiders === composition.outsiders ? "complete" : ""}>
+          </Badge>
+          <Badge variant={currentCounts.outsiders === composition.outsiders ? "default" : "outline"}>
             Outsiders: {currentCounts.outsiders}/{composition.outsiders}
-          </span>
-          <span className={currentCounts.minions === composition.minions ? "complete" : ""}>
+          </Badge>
+          <Badge variant={currentCounts.minions === composition.minions ? "default" : "outline"}>
             Minions: {currentCounts.minions}/{composition.minions}
-          </span>
-          <span className={currentCounts.demons === composition.demons ? "complete" : ""}>
+          </Badge>
+          <Badge variant={currentCounts.demons === composition.demons ? "default" : "outline"}>
             Demons: {currentCounts.demons}/{composition.demons}
-          </span>
+          </Badge>
         </div>
       </header>
 
-      <div className="character-grid-container">
+      <div className="flex flex-col gap-8">
         {(["townsfolk", "outsider", "minion", "demon"] as const).map((type) => (
-          <section key={type} className="character-type-section">
-            <h2 className={`type-header ${type}`}>
+          <section key={type} className="flex flex-col gap-4">
+            <h2 className={`text-base font-semibold m-0 p-2 rounded-md bg-card ${typeColors[type] || ""} border-l-4`}>
               {type.charAt(0).toUpperCase() + type.slice(1)}
               {type === "outsider" ? "s" : type === "townsfolk" ? "" : "s"}
             </h2>
-            <div className="character-grid">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-3">
               {charactersByType[type]?.map((char) => (
                 <CharacterCard
                   key={char.id}
@@ -182,16 +192,20 @@ export function CharacterSelect({
         ))}
       </div>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
-      <footer className="character-select-footer">
-        <button
-          className="confirm-btn"
+      <footer className="sticky bottom-0 p-4 bg-gradient-to-t from-background to-transparent flex justify-center">
+        <Button
           onClick={handleConfirm}
           disabled={!validation.valid}
+          className="min-w-[300px]"
         >
           {validation.valid ? "Confirm Selection" : validation.error ?? "Complete selection"}
-        </button>
+        </Button>
       </footer>
     </div>
   );

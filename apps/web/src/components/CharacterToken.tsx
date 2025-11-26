@@ -86,7 +86,9 @@ export function CharacterToken({
   return (
     <div
       ref={tokenRef}
-      className={`character-token ${isDragging ? "dragging" : ""} ${selected ? "selected" : ""}`}
+      className={`absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1 p-3 bg-card border-2 rounded-lg select-none z-[1] transition-shadow ${
+        isDragging ? "z-[100] shadow-2xl cursor-grabbing" : ""
+      } ${selected ? "shadow-[0_0_0_3px_rgba(201,162,39,0.5)]" : ""}`}
       style={{
         left: currentPos.x,
         top: currentPos.y,
@@ -97,11 +99,11 @@ export function CharacterToken({
       onClick={!draggable || !onDragEnd ? onClick : undefined}
     >
       <div
-        className="token-type-indicator"
+        className="w-3 h-3 rounded-full"
         style={{ backgroundColor: typeColor }}
       />
-      <span className="token-name">{character.name}</span>
-      {playerName && <span className="token-player">{playerName}</span>}
+      <span className="text-sm font-medium text-foreground whitespace-nowrap">{character.name}</span>
+      {playerName && <span className="text-xs text-muted-foreground whitespace-nowrap">{playerName}</span>}
     </div>
   );
 }
@@ -124,7 +126,9 @@ export function CharacterCard({
 
   return (
     <button
-      className={`character-card ${selected ? "selected" : ""} ${disabled ? "disabled" : ""}`}
+      className={`flex flex-col items-center gap-2 p-4 bg-card border-2 rounded-lg cursor-pointer transition-all ${
+        selected ? "bg-muted" : ""
+      } ${disabled ? "opacity-40 cursor-not-allowed" : "hover:bg-muted"}`}
       onClick={onClick}
       disabled={disabled}
       style={{
@@ -132,12 +136,12 @@ export function CharacterCard({
       }}
     >
       <div
-        className="card-type-badge"
+        className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-black"
         style={{ backgroundColor: typeColor }}
       >
         {character.type.charAt(0).toUpperCase()}
       </div>
-      <span className="card-name">{character.name}</span>
+      <span className="text-xs text-center text-muted-foreground">{character.name}</span>
     </button>
   );
 }

@@ -5,6 +5,11 @@ import { send } from "../../lib/websocket";
 import { useInitialGameState } from "../../lib/api";
 import type { ScriptId } from "@org/types";
 import { SCRIPTS, TEAM_COMPOSITION } from "@org/types";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export const Route = createFileRoute("/storyteller/")({
   component: SetupPage,
@@ -44,81 +49,99 @@ function SetupPage() {
   const composition = TEAM_COMPOSITION[playerCount];
 
   return (
-    <div className="page grimoire-page">
-      <div className="setup-container">
-        <header className="setup-header">
-          <h1>Create a Game</h1>
-          <p className="subtitle">Configure your Blood on the Clocktower game</p>
+    <div className="min-h-screen p-8">
+      <div className="max-w-md mx-auto flex flex-col gap-8">
+        <header className="text-center">
+          <h1 className="text-3xl font-serif mb-2 bg-gradient-to-r from-[#c9a227] via-[#f4d03f] to-[#c9a227] bg-clip-text text-transparent">
+            Create a Game
+          </h1>
+          <p className="text-muted-foreground text-sm">Configure your Blood on the Clocktower game</p>
         </header>
 
-        <div className="setup-form">
-          <div className="form-group">
-            <label htmlFor="playerCount">Number of Players</label>
-            <select
-              id="playerCount"
-              value={playerCount}
-              onChange={(e) => setPlayerCount(Number(e.target.value))}
-              className="select-input"
-            >
-              {Object.keys(TEAM_COMPOSITION).map((count) => (
-                <option key={count} value={count}>
-                  {count} players
-                </option>
-              ))}
-            </select>
-            {composition && (
-              <p className="composition-info">
-                {composition.townsfolk} Townsfolk, {composition.outsiders} Outsiders,{" "}
-                {composition.minions} Minions, {composition.demons} Demons
-              </p>
+        <Card>
+          <CardHeader>
+            <CardTitle>Game Setup</CardTitle>
+            <CardDescription>Choose player count and script</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="playerCount">Number of Players</Label>
+              <Select
+                value={playerCount.toString()}
+                onValueChange={(value) => setPlayerCount(Number(value))}
+              >
+                <SelectTrigger id="playerCount">
+                  <SelectValue placeholder="Select player count" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.keys(TEAM_COMPOSITION).map((count) => (
+                    <SelectItem key={count} value={count}>
+                      {count} players
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {composition && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {composition.townsfolk} Townsfolk, {composition.outsiders} Outsiders,{" "}
+                  {composition.minions} Minions, {composition.demons} Demons
+                </p>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="script">Script</Label>
+              <Select
+                value={script}
+                onValueChange={(value) => setScript(value as ScriptId)}
+              >
+                <SelectTrigger id="script">
+                  <SelectValue placeholder="Select script" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(SCRIPTS).map(([id, data]) => (
+                    <SelectItem key={id} value={id}>
+                      {data.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error.message}</AlertDescription>
+              </Alert>
             )}
-          </div>
 
-          <div className="form-group">
-            <label htmlFor="script">Script</label>
-            <select
-              id="script"
-              value={script}
-              onChange={(e) => setScript(e.target.value as ScriptId)}
-              className="select-input"
+            <Button
+              onClick={handleCreateLobby}
+              disabled={!isConnected}
+              className="w-full"
             >
-              {Object.entries(SCRIPTS).map(([id, data]) => (
-                <option key={id} value={id}>
-                  {data.name}
-                </option>
-              ))}
-            </select>
-          </div>
+              Create Lobby
+            </Button>
 
-          {error && <div className="error-message">{error.message}</div>}
-
-          <button
-            onClick={handleCreateLobby}
-            className="create-btn"
-            disabled={!isConnected}
-          >
-            Create Lobby
-          </button>
-
-          <div className="connection-status">
-            <span
-              className="status-dot"
-              style={{
-                backgroundColor:
-                  status === "connected"
-                    ? "#10b981"
-                    : status === "connecting"
-                    ? "#f59e0b"
-                    : "#ef4444",
-              }}
-            />
-            {status === "connected"
-              ? "Connected"
-              : status === "connecting"
-              ? "Connecting..."
-              : "Disconnected"}
-          </div>
-        </div>
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+              <span
+                className="w-2 h-2 rounded-full"
+                style={{
+                  backgroundColor:
+                    status === "connected"
+                      ? "#10b981"
+                      : status === "connecting"
+                      ? "#f59e0b"
+                      : "#ef4444",
+                }}
+              />
+              {status === "connected"
+                ? "Connected"
+                : status === "connecting"
+                ? "Connecting..."
+                : "Disconnected"}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -32,7 +32,7 @@ export function Grimoire() {
 
   if (!gameState) {
     return (
-      <div className="grimoire-loading">
+      <div className="flex items-center justify-center h-full text-muted-foreground">
         <p>Loading grimoire...</p>
       </div>
     );
@@ -41,7 +41,7 @@ export function Grimoire() {
   const script = SCRIPTS[gameState.script];
   if (!script) {
     return (
-      <div className="grimoire-error">
+      <div className="flex items-center justify-center h-full text-destructive">
         <p>Unknown script: {gameState.script}</p>
       </div>
     );
@@ -59,8 +59,8 @@ export function Grimoire() {
   };
 
   return (
-    <div className="grimoire">
-      <div className="grimoire-board">
+    <div className="flex-1 relative overflow-hidden" style={{ background: 'radial-gradient(circle at center, #1a1a2e 0%, #0a0a0a 100%)' }}>
+      <div className="w-full h-full relative">
         {gameState.tokens.map((token) => {
           const character = script.characters.find((c) => c.id === token.characterId);
           if (!character) return null;

@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import { createRootRoute, Outlet } from '@tanstack/react-router'
 import { connect } from '../lib/websocket'
-import '../App.css'
 
 export const Route = createRootRoute({
   component: RootComponent,

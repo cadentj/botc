@@ -31,8 +31,8 @@ function CharacterSelectPage() {
   // Show loading state while fetching initial game state
   if (isLoading) {
     return (
-      <div className="page grimoire-page">
-        <div className="setup-container">
+      <div className="min-h-screen p-8">
+        <div className="max-w-md mx-auto">
           <p>Loading game state...</p>
         </div>
       </div>
@@ -42,8 +42,8 @@ function CharacterSelectPage() {
   // If no game state, redirect to setup
   if (!gameState) {
     return (
-      <div className="page grimoire-page">
-        <div className="setup-container">
+      <div className="min-h-screen p-8">
+        <div className="max-w-md mx-auto">
           <p>No active game. Please create a lobby first.</p>
         </div>
       </div>
@@ -51,7 +51,7 @@ function CharacterSelectPage() {
   }
 
   return (
-    <div className="page grimoire-page">
+    <div className="min-h-screen p-8">
       <CharacterSelect
         script={gameState.script}
         playerCount={gameState.playerCount}
