@@ -72,65 +72,18 @@ export type GamePhase = "setup" | "character_select" | "waiting_for_players" | "
 // Grimoire token position
 export interface GrimoireToken {
   characterId: string;
-  playerId?: string;
 }
 
-// Player info (client-safe, no secrets)
-export interface PlayerInfo {
-  id: string;
-  name: string;
-  isStoryteller: boolean;
-}
-
-// Full game state sent to storyteller
+// Game state for storyteller grimoire
 export interface GameState {
-  lobbyId: string;
   code: string;
-  phase: GamePhase;
   script: ScriptId;
   playerCount: number;
-  selectedCharacters: string[];
-  players: PlayerInfo[];
-  tokens: GrimoireToken[];
-  characterAssignments: Record<string, string>; // playerId -> characterId
-}
-
-// Player-specific game state (limited info)
-export interface PlayerGameState {
-  lobbyId: string;
-  code: string;
   phase: GamePhase;
-  playerId: string;
-  playerName: string;
-  assignedCharacter?: Character;
+  selectedCharacters: string[];
+  tokens: GrimoireToken[];
 }
 
-// ============ WebSocket Messages ============
-
-// Client -> Server messages
-export type ClientMessage =
-  | { type: "CREATE_LOBBY"; playerCount: number; script: ScriptId }
-  | { type: "JOIN_LOBBY"; code: string; name: string; playerId?: string }
-  | { type: "SELECT_CHARACTERS"; characterIds: string[] }
-  | { type: "START_GAME" }
-  | { type: "REMOVE_PLAYER"; playerId: string }
-  | { type: "RECONNECT"; playerId: string };
-
-// Server -> Client messages
-export type ServerMessage =
-  | { type: "CONNECTED"; clientId: string }
-  | { type: "LOBBY_CREATED"; lobbyId: string; code: string; playerId: string }
-  | { type: "LOBBY_JOINED"; lobbyId: string; playerId: string }
-  | { type: "PLAYER_JOINED"; player: PlayerInfo; characterId?: string }
-  | { type: "PLAYER_LEFT"; playerId: string }
-  | { type: "PLAYER_DISCONNECTED"; playerId: string }
-  | { type: "PLAYER_RECONNECTED"; playerId: string }
-  | { type: "CHARACTERS_SELECTED"; characterIds: string[] }
-  | { type: "CHARACTER_ASSIGNED"; character: Character }
-  | { type: "GAME_STATE"; state: GameState }
-  | { type: "PLAYER_GAME_STATE"; state: PlayerGameState }
-  | { type: "GAME_STARTED" }
-  | { type: "ERROR"; code: string; message: string };
 
 // Utility: Get characters for night order info sheet
 export function getFirstNightOrder(characters: Character[]): Character[] {

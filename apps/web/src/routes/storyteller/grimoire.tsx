@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useGameStore } from "../../lib/store";
-import { send } from "../../lib/websocket";
-import { useInitialGameState } from "../../lib/api";
+import { useLobbyState } from "../../lib/api";
 import { Grimoire } from "../../components/Grimoire";
 import { NightOrderSheet } from "../../components/NightOrderSheet";
 import { Button } from "@/components/ui/button";
@@ -13,9 +12,9 @@ export const Route = createFileRoute("/storyteller/grimoire")({
 
 function GrimoirePage() {
   const [showNightOrder, setShowNightOrder] = useState(false);
-  // Use individual selector to ensure proper re-renders
+  const lobbyCode = useGameStore((s) => s.lobbyCode);
   const gameState = useGameStore((s) => s.gameState);
-  const { isLoading } = useInitialGameState();
+  const { isLoading } = useLobbyState(lobbyCode);
 
   // Show loading state while fetching initial game state
   if (isLoading) {
@@ -61,37 +60,8 @@ function GrimoirePage() {
             </Button>
           </header>
 
-          <div className="flex-1 flex overflow-hidden">
+          <div className="flex-1 overflow-hidden">
             <Grimoire />
-
-            <aside className="w-[280px] bg-card border-l p-4 overflow-y-auto flex-shrink-0">
-              <h2 className="text-sm font-semibold text-muted-foreground mb-4 uppercase tracking-wide">
-                Players ({gameState.players.filter((p) => !p.isStoryteller).length ?? 0}/{gameState.playerCount})
-              </h2>
-              <ul className="list-none p-0 m-0 flex flex-col gap-2">
-                {gameState.players
-                  .filter((p) => !p.isStoryteller)
-                  .map((player) => (
-                    <li key={player.id} className="flex items-center gap-2 p-2 bg-muted rounded-md">
-                      <span className="flex-1 text-sm">{player.name}</span>
-                      {gameState.characterAssignments[player.id] && (
-                        <span className="text-xs text-muted-foreground">
-                          ({gameState.characterAssignments[player.id]})
-                        </span>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-5 w-5 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => send({ type: "REMOVE_PLAYER", playerId: player.id })}
-                        title="Remove player"
-                      >
-                        ×
-                      </Button>
-                    </li>
-                  ))}
-              </ul>
-            </aside>
           </div>
         </>
       )}

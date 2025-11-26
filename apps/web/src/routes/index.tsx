@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useGameStore } from "../lib/store";
-import { send } from "../lib/websocket";
+import { joinLobby } from "../lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,47 +14,42 @@ export const Route = createFileRoute("/")({
 
 function JoinPage() {
   const [code, setCode] = useState("");
-  const [name, setName] = useState("");
   const [isJoining, setIsJoining] = useState(false);
   const navigate = useNavigate();
   
-  // Use individual selectors to ensure proper re-renders
-  const status = useGameStore((s) => s.status);
-  const playerState = useGameStore((s) => s.playerState);
-  const playerId = useGameStore((s) => s.playerId);
+  const assignedCharacter = useGameStore((s) => s.assignedCharacter);
   const error = useGameStore((s) => s.error);
   const clearError = useGameStore((s) => s.clearError);
+  const setError = useGameStore((s) => s.setError);
 
-  // Navigate to player page when playerState is set (means we successfully joined)
+  // Navigate to player page if we have a character
   useEffect(() => {
-    if (isJoining && playerState) {
-      navigate({ to: "/player/$lobbyId", params: { lobbyId: playerState.lobbyId } });
+    if (assignedCharacter) {
+      navigate({ to: "/player/$lobbyId", params: { lobbyId: "current" } });
     }
-  }, [isJoining, playerState, navigate]);
+  }, [assignedCharacter, navigate]);
 
-  // Handle error
-  useEffect(() => {
-    if (error) {
-      setIsJoining(false);
-    }
-  }, [error]);
-
-  const handleJoin = (e: React.FormEvent) => {
+  const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!code.trim() || !name.trim() || status !== "connected") return;
+    if (!code.trim() || code.trim().length !== 4) return;
 
     setIsJoining(true);
     clearError();
-    send({ 
-      type: "JOIN_LOBBY", 
-      code: code.toUpperCase(), 
-      name: name.trim(),
-      playerId: playerId || undefined
-    });
+    
+    try {
+      await joinLobby(code.toUpperCase());
+      // Navigate will happen via redirect above if character was assigned
+      setIsJoining(false);
+    } catch (err) {
+      setError({
+        code: "JOIN_ERROR",
+        message: err instanceof Error ? err.message : "Failed to join lobby",
+      });
+      setIsJoining(false);
+    }
   };
 
-  const isConnected = status === "connected";
-  const canJoin = isConnected && code.trim().length === 4 && name.trim().length > 0;
+  const canJoin = code.trim().length === 4 && !isJoining;
 
   return (
     <div className="min-h-screen flex items-center justify-center p-8 bg-gradient-to-br from-[#1a1a2e] via-[#0a0a0a] to-[#0a0a0a]">
@@ -69,7 +64,7 @@ function JoinPage() {
         <Card>
           <CardHeader>
             <CardTitle>Join Game</CardTitle>
-            <CardDescription>Enter your game code and name to join</CardDescription>
+            <CardDescription>Enter your game code to join</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleJoin} className="flex flex-col gap-5">
@@ -88,20 +83,6 @@ function JoinPage() {
                 />
               </div>
 
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="name">Your Name</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter your name"
-                  maxLength={20}
-                  autoComplete="off"
-                  disabled={isJoining}
-                />
-              </div>
-
               {error && (
                 <Alert variant="destructive">
                   <AlertDescription>{error.message}</AlertDescription>
@@ -115,25 +96,6 @@ function JoinPage() {
               >
                 {isJoining ? "Joining..." : "Join Game"}
               </Button>
-
-              <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                <span
-                  className="w-2 h-2 rounded-full"
-                  style={{
-                    backgroundColor:
-                      status === "connected"
-                        ? "#10b981"
-                        : status === "connecting"
-                        ? "#f59e0b"
-                        : "#ef4444",
-                  }}
-                />
-                {status === "connected"
-                  ? "Connected"
-                  : status === "connecting"
-                  ? "Connecting..."
-                  : "Disconnected"}
-              </div>
             </form>
           </CardContent>
         </Card>
@@ -147,4 +109,3 @@ function JoinPage() {
     </div>
   );
 }
-

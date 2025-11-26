@@ -1,25 +1,33 @@
 import { serve } from "@hono/node-server";
-import { createNodeWebSocket } from "@hono/node-ws";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { cors } from "hono/cors";
-import type { ClientMessage } from "@org/types";
-import { connectionManager } from "./connections.js";
-import { lobbyService, playerService } from "./services/index.js";
-import { getGameState, getPlayerGameState } from "./state/index.js";
-import {
-  handleCreateLobby,
-  handleJoinLobby,
-  handleSelectCharacters,
-  handleStartGame,
-  handleRemovePlayer,
-  handleReconnect,
-} from "./handlers/index.js";
+import type { ScriptId, GamePhase } from "@org/types";
+import { SCRIPTS } from "@org/types";
 
 const app = new Hono();
 
-// Create WebSocket handler for Node.js
-const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
+// In-memory lobby store
+interface Lobby {
+  code: string;
+  script: ScriptId;
+  playerCount: number;
+  selectedCharacters: string[] | null;
+  phase: GamePhase;
+  assignedCharacters: string[]; // characters already given out
+}
+
+const lobbies = new Map<string, Lobby>(); // code -> Lobby
+
+// Helper to generate 4-character lobby code
+function generateLobbyCode(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Avoid confusing chars like 0/O, 1/I
+  let code = "";
+  for (let i = 0; i < 4; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return code;
+}
 
 // Middleware
 app.use("*", logger());
@@ -37,146 +45,191 @@ app.get("/", (c) => {
   return c.json({ status: "ok", message: "BotC Server" });
 });
 
-// REST endpoint for fetching game state
-app.get("/api/game", async (c) => {
-  const playerId = c.req.header("X-Player-Id");
+// Create lobby
+app.post("/api/lobby", async (c) => {
+  try {
+    const body = await c.req.json();
+    const { playerCount, script } = body as { playerCount: number; script: ScriptId };
 
-  if (!playerId) {
-    return c.json({ error: "Missing player id" }, 401);
-  }
-
-  // Find player by id
-  const player = await playerService.findById(playerId);
-
-  if (!player) {
-    return c.json({ error: "Invalid player id" }, 401);
-  }
-
-  // If storyteller, return full game state
-  if (player.isStoryteller) {
-    const gameState = await getGameState(player.lobbyId);
-    if (!gameState) {
-      return c.json({ error: "Game not found" }, 404);
+    if (!playerCount || !script) {
+      return c.json({ error: "Missing playerCount or script" }, 400);
     }
-    return c.json(gameState);
-  }
 
-  // Otherwise, return player-specific game state
-  const playerGameState = await getPlayerGameState(player.id);
-  if (!playerGameState) {
-    return c.json({ error: "Game not found" }, 404);
+    // Generate unique lobby code
+    let code: string;
+    do {
+      code = generateLobbyCode();
+    } while (lobbies.has(code));
+
+    // Create lobby
+    const lobby: Lobby = {
+      code,
+      script,
+      playerCount,
+      selectedCharacters: null,
+      phase: "character_select",
+      assignedCharacters: [],
+    };
+
+    lobbies.set(code, lobby);
+
+    return c.json({ code });
+  } catch (error) {
+    console.error("Error creating lobby:", error);
+    return c.json({ error: "Failed to create lobby" }, 500);
   }
-  return c.json(playerGameState);
 });
 
-// WebSocket endpoint
-app.get(
-  "/ws",
-  upgradeWebSocket((_c) => {
-    const clientId = crypto.randomUUID();
+// Get lobby info (for storyteller grimoire)
+app.get("/api/lobby/:code", async (c) => {
+  try {
+    const code = c.req.param("code").toUpperCase();
+    const lobby = lobbies.get(code);
 
-    return {
-      onOpen: (_event, ws) => {
-        console.log(`Client connected: ${clientId}`);
-        connectionManager.register(clientId, ws as any);
+    if (!lobby) {
+      return c.json({ error: "Lobby not found" }, 404);
+    }
 
-        (ws as any).send(
-          JSON.stringify({
-            type: "CONNECTED",
-            clientId,
-          })
-        );
-      },
+    const tokens = lobby.selectedCharacters
+      ? lobby.selectedCharacters.map((characterId) => ({
+          characterId,
+        }))
+      : [];
 
-      onMessage: async (event, ws) => {
-        try {
-          const message = JSON.parse(event.data.toString()) as ClientMessage;
-          console.log(`Message from ${clientId}:`, message);
+    return c.json({
+      code: lobby.code,
+      script: lobby.script,
+      playerCount: lobby.playerCount,
+      phase: lobby.phase,
+      selectedCharacters: lobby.selectedCharacters || [],
+      tokens,
+    });
+  } catch (error) {
+    console.error("Error fetching lobby:", error);
+    return c.json({ error: "Failed to fetch lobby" }, 500);
+  }
+});
 
-          switch (message.type) {
-            case "CREATE_LOBBY":
-              await handleCreateLobby(clientId, message.playerCount, message.script);
-              break;
-            case "JOIN_LOBBY":
-              await handleJoinLobby(clientId, message.code, message.name, message.playerId);
-              break;
-            case "SELECT_CHARACTERS":
-              await handleSelectCharacters(clientId, message.characterIds);
-              break;
-            case "START_GAME":
-              await handleStartGame(clientId);
-              break;
-            case "REMOVE_PLAYER":
-              await handleRemovePlayer(clientId, message.playerId);
-              break;
-            case "RECONNECT":
-              await handleReconnect(clientId, message.playerId);
-              break;
-            default:
-              (ws as any).send(
-                JSON.stringify({
-                  type: "ERROR",
-                  code: "UNKNOWN_MESSAGE",
-                  message: "Unknown message type",
-                })
-              );
-          }
-        } catch (error) {
-          console.error(`Error processing message from ${clientId}:`, error);
-          (ws as any).send(
-            JSON.stringify({
-              type: "ERROR",
-              code: "INVALID_MESSAGE",
-              message: "Failed to parse message",
-            })
-          );
-        }
-      },
+// Set selected characters (storyteller only)
+app.post("/api/lobby/:code/characters", async (c) => {
+  try {
+    const code = c.req.param("code").toUpperCase();
+    const body = await c.req.json();
+    const { characterIds } = body as { characterIds: string[] };
 
-      onClose: async (_event, _ws) => {
-        console.log(`Client disconnected: ${clientId}`);
-        const client = connectionManager.get(clientId);
+    if (!characterIds || !Array.isArray(characterIds)) {
+      return c.json({ error: "Missing or invalid characterIds" }, 400);
+    }
 
-        if (client?.playerId) {
-          if (client.lobbyId) {
-            connectionManager.broadcastToLobby(client.lobbyId, {
-              type: "PLAYER_DISCONNECTED",
-              playerId: client.playerId,
-            });
-          }
-        }
+    const lobby = lobbies.get(code);
+    if (!lobby) {
+      return c.json({ error: "Lobby not found" }, 404);
+    }
 
-        connectionManager.remove(clientId);
-      },
+    if (lobby.phase !== "character_select") {
+      return c.json({ error: "Lobby is not in character selection phase" }, 400);
+    }
 
-      onError: (event, _ws) => {
-        console.error(`WebSocket error for ${clientId}:`, event);
-        connectionManager.remove(clientId);
-      },
-    };
-  })
-);
+    // Update lobby
+    lobby.selectedCharacters = characterIds;
+    lobby.phase = "waiting_for_players";
+
+    return c.json({ success: true });
+  } catch (error) {
+    console.error("Error selecting characters:", error);
+    return c.json({ error: "Failed to select characters" }, 500);
+  }
+});
+
+// Join lobby and get next available character
+app.post("/api/lobby/:code/join", async (c) => {
+  try {
+    const code = c.req.param("code").toUpperCase();
+    const lobby = lobbies.get(code);
+
+    if (!lobby) {
+      return c.json({ error: "No lobby found with that code" }, 404);
+    }
+
+    if (lobby.phase !== "waiting_for_players") {
+      return c.json({ error: "Lobby is not accepting players" }, 400);
+    }
+
+    if (!lobby.selectedCharacters) {
+      return c.json({ error: "Characters not yet selected" }, 400);
+    }
+
+    // Check if lobby is full
+    if (lobby.assignedCharacters.length >= lobby.playerCount) {
+      return c.json({ error: "This game is full" }, 400);
+    }
+
+    // Get next available character
+    const availableChars = lobby.selectedCharacters.filter(
+      (c) => !lobby.assignedCharacters.includes(c)
+    );
+
+    if (availableChars.length === 0) {
+      return c.json({ error: "No characters available" }, 400);
+    }
+
+    // Assign random character
+    const randomChar = availableChars[Math.floor(Math.random() * availableChars.length)]!;
+    lobby.assignedCharacters.push(randomChar);
+
+    const script = SCRIPTS[lobby.script];
+    const character = script?.characters.find((c) => c.id === randomChar);
+
+    return c.json({
+      character,
+    });
+  } catch (error) {
+    console.error("Error joining lobby:", error);
+    return c.json({ error: "Failed to join lobby" }, 500);
+  }
+});
+
+// Start game (change phase to playing)
+app.post("/api/lobby/:code/start", async (c) => {
+  try {
+    const code = c.req.param("code").toUpperCase();
+    const lobby = lobbies.get(code);
+
+    if (!lobby) {
+      return c.json({ error: "Lobby not found" }, 404);
+    }
+
+    if (lobby.phase !== "waiting_for_players") {
+      return c.json({ error: "Lobby is not in waiting phase" }, 400);
+    }
+
+    lobby.phase = "playing";
+
+    return c.json({ success: true });
+  } catch (error) {
+    console.error("Error starting game:", error);
+    return c.json({ error: "Failed to start game" }, 500);
+  }
+});
+
+// Cleanup old lobbies every hour (optional, but good practice)
+const CLEANUP_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
+function cleanupOldLobbies() {
+  // For now, we'll just log - in a real scenario you might want to track creation time
+  // and remove lobbies older than X hours
+  console.log(`Active lobbies: ${lobbies.size}`);
+}
+
+// Run cleanup every hour
+setInterval(cleanupOldLobbies, CLEANUP_INTERVAL_MS);
 
 // Start server
 const port = Number(process.env.PORT) || 3000;
 const server = serve({ fetch: app.fetch, port });
 
-// Inject WebSocket handling into the server
-injectWebSocket(server);
-
 // Graceful shutdown
 const shutdown = () => {
   console.log("Shutting down gracefully...");
-
-  // Close all WebSocket connections
-  for (const [clientId, client] of Array.from(connectionManager.getAll().entries())) {
-    try {
-      client.ws.close();
-    } catch (error) {
-      console.error(`Error closing connection ${clientId}:`, error);
-    }
-  }
-
   server.close(() => {
     console.log("Server closed");
     process.exit(0);
@@ -185,22 +238,5 @@ const shutdown = () => {
 
 process.on("SIGTERM", shutdown);
 process.on("SIGINT", shutdown);
-
-// Cleanup old lobbies every 6 hours
-const CLEANUP_INTERVAL_MS = 6 * 60 * 60 * 1000;
-async function cleanupOldLobbies() {
-  try {
-    const deleted = await lobbyService.cleanupOldLobbies();
-    if (deleted > 0) {
-      console.log(`Cleaned up ${deleted} old lobbies`);
-    }
-  } catch (error) {
-    console.error("Error cleaning up old lobbies:", error);
-  }
-}
-
-// Run cleanup on startup and then every 6 hours
-cleanupOldLobbies();
-setInterval(cleanupOldLobbies, CLEANUP_INTERVAL_MS);
 
 console.log(`Server running on port ${port}`);

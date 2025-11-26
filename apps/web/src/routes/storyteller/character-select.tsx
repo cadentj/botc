@@ -1,8 +1,7 @@
 import { useEffect } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useGameStore } from "../../lib/store";
-import { send } from "../../lib/websocket";
-import { useInitialGameState } from "../../lib/api";
+import { selectCharacters, useLobbyState } from "../../lib/api";
 import { CharacterSelect } from "../../components/CharacterSelect";
 
 export const Route = createFileRoute("/storyteller/character-select")({
@@ -11,21 +10,31 @@ export const Route = createFileRoute("/storyteller/character-select")({
 
 function CharacterSelectPage() {
   const navigate = useNavigate();
-  // Use individual selectors to ensure proper re-renders
+  const lobbyCode = useGameStore((s) => s.lobbyCode);
   const gameState = useGameStore((s) => s.gameState);
-  const lastMessage = useGameStore((s) => s.lastMessage);
   const error = useGameStore((s) => s.error);
-  const { isLoading } = useInitialGameState();
+  const setError = useGameStore((s) => s.setError);
+  const { isLoading, refetch } = useLobbyState(lobbyCode);
 
   // Navigate to grimoire when characters are selected
   useEffect(() => {
-    if (lastMessage?.type === "CHARACTERS_SELECTED" || gameState?.phase === "waiting_for_players") {
+    if (gameState?.phase === "waiting_for_players") {
       navigate({ to: "/storyteller/grimoire" });
     }
-  }, [lastMessage, gameState?.phase, navigate]);
+  }, [gameState?.phase, navigate]);
 
-  const handleSelectCharacters = (characterIds: string[]) => {
-    send({ type: "SELECT_CHARACTERS", characterIds });
+  const handleSelectCharacters = async (characterIds: string[]) => {
+    if (!lobbyCode) return;
+    try {
+      await selectCharacters(lobbyCode, characterIds);
+      // Refetch game state to get updated phase
+      await refetch();
+    } catch (err) {
+      setError({
+        code: "SELECT_ERROR",
+        message: err instanceof Error ? err.message : "Failed to select characters",
+      });
+    }
   };
 
   // Show loading state while fetching initial game state

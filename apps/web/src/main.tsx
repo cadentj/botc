@@ -8,7 +8,7 @@ import './index.css'
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 0, // Always consider REST data stale, websocket is source of truth
+      staleTime: 0, // Always refetch to get latest game state
       refetchOnWindowFocus: false,
     },
   },

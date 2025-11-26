@@ -31,7 +31,6 @@ interface CharacterTokenProps {
   id: string; // unique id for dnd-kit
   character: Character;
   position: { x: number; y: number };
-  playerName?: string;
   selected?: boolean;
   onClick?: () => void;
   helperTokens?: string[]; // array of helper token IDs assigned to this token
@@ -51,7 +50,6 @@ export function CharacterToken({
   id,
   character,
   position,
-  playerName,
   selected,
   onClick,
   helperTokens = [],
@@ -138,7 +136,6 @@ export function CharacterToken({
         )}
       </div>
       <span className="text-sm font-medium text-foreground whitespace-nowrap">{character.name}</span>
-      {playerName && <span className="text-xs text-muted-foreground whitespace-nowrap">{playerName}</span>}
       {assignedHelperTokens.length > 0 && (
         <div className="flex flex-wrap gap-1 justify-center mt-1">
           {assignedHelperTokens.map((ht) => (

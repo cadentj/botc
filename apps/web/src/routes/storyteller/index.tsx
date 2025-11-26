@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useGameStore } from "../../lib/store";
-import { send } from "../../lib/websocket";
-import { useInitialGameState } from "../../lib/api";
+import { createLobby, useLobbyState } from "../../lib/api";
 import type { ScriptId } from "@org/types";
 import { SCRIPTS, TEAM_COMPOSITION } from "@org/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,12 +20,14 @@ function SetupPage() {
   const navigate = useNavigate();
 
   // Use individual selectors to ensure proper re-renders
-  const status = useGameStore((s) => s.status);
+  const lobbyCode = useGameStore((s) => s.lobbyCode);
   const gameState = useGameStore((s) => s.gameState);
   const error = useGameStore((s) => s.error);
   const clearError = useGameStore((s) => s.clearError);
-  // Fetch initial game state on page load (for reconnection)
-  useInitialGameState();
+  const setError = useGameStore((s) => s.setError);
+  const [isCreating, setIsCreating] = useState(false);
+  // Fetch lobby state if we have a code
+  useLobbyState(lobbyCode);
 
   // Redirect based on game state
   useEffect(() => {
@@ -39,13 +40,21 @@ function SetupPage() {
     }
   }, [gameState, navigate]);
 
-  const handleCreateLobby = () => {
-    if (status !== "connected") return;
+  const handleCreateLobby = async () => {
+    setIsCreating(true);
     clearError();
-    send({ type: "CREATE_LOBBY", playerCount, script });
+    try {
+      await createLobby(playerCount, script);
+      // Navigation will happen via useEffect when gameState is updated
+    } catch (err) {
+      setError({
+        code: "CREATE_ERROR",
+        message: err instanceof Error ? err.message : "Failed to create lobby",
+      });
+      setIsCreating(false);
+    }
   };
 
-  const isConnected = status === "connected";
   const composition = TEAM_COMPOSITION[playerCount];
 
   return (
@@ -116,30 +125,11 @@ function SetupPage() {
 
             <Button
               onClick={handleCreateLobby}
-              disabled={!isConnected}
+              disabled={isCreating}
               className="w-full"
             >
-              Create Lobby
+              {isCreating ? "Creating..." : "Create Lobby"}
             </Button>
-
-            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-              <span
-                className="w-2 h-2 rounded-full"
-                style={{
-                  backgroundColor:
-                    status === "connected"
-                      ? "#10b981"
-                      : status === "connecting"
-                      ? "#f59e0b"
-                      : "#ef4444",
-                }}
-              />
-              {status === "connected"
-                ? "Connected"
-                : status === "connecting"
-                ? "Connecting..."
-                : "Disconnected"}
-            </div>
           </CardContent>
         </Card>
       </div>

@@ -97,16 +97,6 @@ export function Grimoire() {
     );
   }
 
-  // Find player name for each token
-  const getPlayerForCharacter = (characterId: string): string | undefined => {
-    for (const [playerId, charId] of Object.entries(gameState.characterAssignments)) {
-      if (charId === characterId) {
-        const player = gameState.players.find((p) => p.id === playerId);
-        return player?.name;
-      }
-    }
-    return undefined;
-  };
 
   return (
     <DndContext
@@ -133,7 +123,6 @@ export function Grimoire() {
                 id={token.characterId}
                 character={character}
                 position={position}
-                playerName={getPlayerForCharacter(token.characterId)}
                 helperTokens={helperTokenAssignments[token.characterId] || []}
                 availableHelperTokens={availableHelperTokens}
                 onAddHelperToken={(helperTokenId) => handleAddHelperToken(token.characterId, helperTokenId)}
