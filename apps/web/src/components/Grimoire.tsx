@@ -1,31 +1,25 @@
 import { useState, useCallback, useRef } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import { useGameSocket } from "../lib/websocket";
+import { useGameStore } from "../lib/store";
+import { useUpdateTokenPosition } from "../lib/api";
 import { CharacterToken } from "./CharacterToken";
 import { SCRIPTS } from "@org/types";
 
-const API_URL = import.meta.env.DEV
-  ? "http://localhost:3000"
-  : `https://${window.location.hostname.replace("web", "server")}`;
-
 export function Grimoire() {
-  const { gameState, sessionToken } = useGameSocket();
-  // Local positions for immediate feedback while debouncing
+  const gameState = useGameStore((s) => s.gameState);
   const [localPositions, setLocalPositions] = useState<Record<string, { x: number; y: number }>>({});
   const pendingUpdates = useRef<Set<string>>(new Set());
+  const updateTokenPosition = useUpdateTokenPosition();
 
   const savePosition = useDebouncedCallback(
     async (characterId: string, position: { x: number; y: number }) => {
-      if (!gameState || !sessionToken) return;
+      if (!gameState) return;
 
       try {
-        await fetch(`${API_URL}/api/tokens/${gameState.lobbyId}/${characterId}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Session-Token": sessionToken,
-          },
-          body: JSON.stringify(position),
+        await updateTokenPosition.mutateAsync({
+          lobbyId: gameState.lobbyId,
+          characterId,
+          position,
         });
       } catch (error) {
         console.error("Failed to save token position:", error);

@@ -1,15 +1,17 @@
-import { useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { useGameSocket } from "../lib/websocket";
+import { createFileRoute } from "@tanstack/react-router";
+import { useGameStore } from "../lib/store";
+import { useInitialGameState } from "../lib/api";
 
-export function PlayerPage() {
-  const { lobbyId } = useParams<{ lobbyId: string }>();
-  const { status, connect, playerState, error } = useGameSocket();
+export const Route = createFileRoute("/player/$lobbyId")({
+  component: PlayerPage,
+});
 
-  // Connect on mount
-  useEffect(() => {
-    connect();
-  }, [connect]);
+function PlayerPage() {
+  // Use individual selectors to ensure proper re-renders
+  const status = useGameStore((s) => s.status);
+  const playerState = useGameStore((s) => s.playerState);
+  const error = useGameStore((s) => s.error);
+  const { isLoading } = useInitialGameState();
 
   const phase = playerState?.phase;
   const character = playerState?.assignedCharacter;
@@ -36,10 +38,17 @@ export function PlayerPage() {
             </div>
           )}
 
-          {status === "connected" && !playerState && (
+          {isLoading && (
             <div className="loading-message">
               <div className="spinner" />
               <p>Loading game state...</p>
+            </div>
+          )}
+
+          {status === "connected" && !isLoading && !playerState && (
+            <div className="loading-message">
+              <div className="spinner" />
+              <p>Waiting for game state...</p>
             </div>
           )}
 

@@ -39,6 +39,40 @@ app.get("/", (c) => {
   return c.json({ status: "ok", message: "BotC Server" });
 });
 
+// REST endpoint for fetching game state
+app.get("/api/game", async (c) => {
+  const sessionToken = c.req.header("X-Session-Token");
+
+  if (!sessionToken) {
+    return c.json({ error: "Missing session token" }, 401);
+  }
+
+  // Find player by session token
+  const player = await db.query.players.findFirst({
+    where: eq(players.sessionToken, sessionToken),
+  });
+
+  if (!player) {
+    return c.json({ error: "Invalid session token" }, 401);
+  }
+
+  // If storyteller, return full game state
+  if (player.isStoryteller) {
+    const gameState = await getGameState(player.lobbyId);
+    if (!gameState) {
+      return c.json({ error: "Game not found" }, 404);
+    }
+    return c.json(gameState);
+  }
+
+  // Otherwise, return player-specific game state
+  const playerGameState = await getPlayerGameState(player.id);
+  if (!playerGameState) {
+    return c.json({ error: "Game not found" }, 404);
+  }
+  return c.json(playerGameState);
+});
+
 // REST endpoint for updating token positions (debounced by client)
 app.put("/api/tokens/:lobbyId/:characterId", async (c) => {
   const { lobbyId, characterId } = c.req.param();
@@ -241,6 +275,12 @@ async function handleCreateLobby(
     code,
     sessionToken,
   });
+
+  // Send initial game state
+  const state = await getGameState(lobbyId);
+  if (state) {
+    sendToClient(clientId, { type: "GAME_STATE", state });
+  }
 }
 
 async function handleJoinLobby(

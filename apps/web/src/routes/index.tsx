@@ -1,26 +1,30 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { useGameSocket } from "../lib/websocket";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useGameStore } from "../lib/store";
+import { send } from "../lib/websocket";
 
-export function JoinPage() {
+export const Route = createFileRoute("/")({
+  component: JoinPage,
+});
+
+function JoinPage() {
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [isJoining, setIsJoining] = useState(false);
   const navigate = useNavigate();
-  const { status, connect, send, playerState, lastMessage, error, clearError } =
-    useGameSocket();
+  
+  // Use individual selectors to ensure proper re-renders
+  const status = useGameStore((s) => s.status);
+  const playerState = useGameStore((s) => s.playerState);
+  const error = useGameStore((s) => s.error);
+  const clearError = useGameStore((s) => s.clearError);
 
-  // Connect on mount
+  // Navigate to player page when playerState is set (means we successfully joined)
   useEffect(() => {
-    connect();
-  }, [connect]);
-
-  // Navigate to player page when joined
-  useEffect(() => {
-    if (lastMessage?.type === "LOBBY_JOINED" && playerState) {
-      navigate(`/player/${playerState.lobbyId}`);
+    if (isJoining && playerState) {
+      navigate({ to: "/player/$lobbyId", params: { lobbyId: playerState.lobbyId } });
     }
-  }, [lastMessage, playerState, navigate]);
+  }, [isJoining, playerState, navigate]);
 
   // Handle error
   useEffect(() => {
@@ -115,7 +119,7 @@ export function JoinPage() {
         </form>
 
         <div className="storyteller-link">
-          <Link to="/grimoire">Create a game as Storyteller</Link>
+          <Link to="/storyteller">Create a game as Storyteller</Link>
         </div>
       </div>
     </div>
