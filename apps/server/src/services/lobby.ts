@@ -1,7 +1,10 @@
-import { eq } from "drizzle-orm";
+import { eq, lt } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { lobbies } from "../db/schema.js";
 import type { GamePhase, ScriptId } from "@org/types";
+
+// 6 hours in milliseconds
+const LOBBY_TTL_MS = 6 * 60 * 60 * 1000;
 
 export const lobbyService = {
   findByCode: async (code: string) => {
@@ -46,6 +49,17 @@ export const lobbyService = {
         selectedCharacters: JSON.stringify(characterIds),
       })
       .where(eq(lobbies.id, id));
+  },
+
+  delete: async (id: string) => {
+    await db.delete(lobbies).where(eq(lobbies.id, id));
+  },
+
+  // Delete all lobbies older than 6 hours
+  cleanupOldLobbies: async () => {
+    const cutoff = new Date(Date.now() - LOBBY_TTL_MS);
+    const result = await db.delete(lobbies).where(lt(lobbies.createdAt, cutoff));
+    return result.changes;
   },
 };
 

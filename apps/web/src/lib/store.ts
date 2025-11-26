@@ -147,9 +147,14 @@ export const useGameStore = create<GameStore>()(
             }
             break;
           }
-            
+
           case "ERROR":
             set({ error: { code: message.code, message: message.message } });
+            // Clear stale player ID if the player no longer exists
+            if (message.code === "INVALID_PLAYER") {
+              get().setPlayerId(null);
+              set({ gameState: null, playerState: null });
+            }
             break;
         }
       },

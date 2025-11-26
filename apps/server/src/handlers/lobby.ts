@@ -97,15 +97,6 @@ export async function handleJoinLobby(
         lobbyId: lobby.id,
       });
 
-      connectionManager.broadcastToLobby(
-        lobby.id,
-        {
-          type: "PLAYER_RECONNECTED",
-          playerId: existingPlayer.id,
-        },
-        clientId
-      );
-
       // Send appropriate state based on player role
       if (existingPlayer.isStoryteller) {
         const state = await getGameState(lobby.id);

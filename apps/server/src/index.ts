@@ -5,7 +5,7 @@ import { logger } from "hono/logger";
 import { cors } from "hono/cors";
 import type { ClientMessage } from "@org/types";
 import { connectionManager } from "./connections.js";
-import { playerService, tokenService } from "./services/index.js";
+import { lobbyService, playerService, tokenService } from "./services/index.js";
 import { getGameState, getPlayerGameState } from "./state/index.js";
 import {
   handleCreateLobby,
@@ -209,5 +209,22 @@ const shutdown = () => {
 
 process.on("SIGTERM", shutdown);
 process.on("SIGINT", shutdown);
+
+// Cleanup old lobbies every 6 hours
+const CLEANUP_INTERVAL_MS = 6 * 60 * 60 * 1000;
+async function cleanupOldLobbies() {
+  try {
+    const deleted = await lobbyService.cleanupOldLobbies();
+    if (deleted > 0) {
+      console.log(`Cleaned up ${deleted} old lobbies`);
+    }
+  } catch (error) {
+    console.error("Error cleaning up old lobbies:", error);
+  }
+}
+
+// Run cleanup on startup and then every 6 hours
+cleanupOldLobbies();
+setInterval(cleanupOldLobbies, CLEANUP_INTERVAL_MS);
 
 console.log(`Server running on port ${port}`);

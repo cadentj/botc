@@ -65,15 +65,6 @@ export async function handleReconnect(clientId: string, playerId: string): Promi
     lobbyId: player.lobbyId,
   });
 
-  connectionManager.broadcastToLobby(
-    player.lobbyId,
-    {
-      type: "PLAYER_RECONNECTED",
-      playerId: player.id,
-    },
-    clientId
-  );
-
   // Send appropriate state
   if (player.isStoryteller) {
     const state = await getGameState(player.lobbyId);
