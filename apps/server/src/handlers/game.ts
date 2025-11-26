@@ -1,4 +1,3 @@
-import { validateCharacterSelection } from "@org/types";
 import { connectionManager } from "../connections.js";
 import { lobbyService } from "../services/index.js";
 import { tokenService } from "../services/tokens.js";
@@ -23,16 +22,7 @@ export async function handleSelectCharacters(
   const lobby = await lobbyService.findById(client.lobbyId);
   if (!lobby) return;
 
-  // Validate selection
-  const validation = validateCharacterSelection(characterIds, lobby.playerCount, lobby.script);
-  if (!validation.valid) {
-    connectionManager.sendToClient(clientId, {
-      type: "ERROR",
-      code: "INVALID_SELECTION",
-      message: validation.error ?? "Invalid character selection",
-    });
-    return;
-  }
+  // NOTE(cadentj): Omit validating the initial selection, that is done on the client
 
   // Update lobby
   await lobbyService.updatePhaseAndCharacters(client.lobbyId, "waiting_for_players", characterIds);

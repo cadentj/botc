@@ -17,7 +17,6 @@ export const players = sqliteTable("players", {
     .notNull()
     .references(() => lobbies.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
-  sessionToken: text("session_token").notNull().unique(),
   isStoryteller: integer("is_storyteller", { mode: "boolean" })
     .notNull()
     .default(false),

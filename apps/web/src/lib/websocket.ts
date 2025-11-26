@@ -31,11 +31,11 @@ class WebSocketManager {
     ws.onopen = () => {
       this.store.setStatus("connected");
       
-      // Try to reconnect with existing session
-      const sessionToken = this.store.sessionToken;
-      if (sessionToken && ws.readyState === WebSocket.OPEN) {
+      // Try to reconnect with existing player id
+      const playerId = this.store.playerId;
+      if (playerId && ws.readyState === WebSocket.OPEN) {
         ws.send(
-          JSON.stringify({ type: "RECONNECT", sessionToken })
+          JSON.stringify({ type: "RECONNECT", playerId })
         );
       }
     };

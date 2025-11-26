@@ -48,23 +48,19 @@ export async function handleRemovePlayer(clientId: string, playerId: string): Pr
   }
 }
 
-export async function handleReconnect(clientId: string, sessionToken: string): Promise<void> {
-  const player = await playerService.findBySessionToken(sessionToken);
+export async function handleReconnect(clientId: string, playerId: string): Promise<void> {
+  const player = await playerService.findById(playerId);
 
   if (!player) {
     connectionManager.sendToClient(clientId, {
       type: "ERROR",
-      code: "INVALID_SESSION",
-      message: "Session not found",
+      code: "INVALID_PLAYER",
+      message: "Player not found",
     });
     return;
   }
 
-  // Update connection status
-  await playerService.updateConnected(player.id, true);
-
   connectionManager.update(clientId, {
-    sessionToken,
     playerId: player.id,
     lobbyId: player.lobbyId,
   });

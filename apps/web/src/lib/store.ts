@@ -8,7 +8,7 @@ interface GameStore {
   // Connection state
   status: ConnectionStatus;
   clientId: string | null;
-  sessionToken: string | null;
+  playerId: string | null;
   
   // Game state (source of truth)
   gameState: GameState | null;
@@ -21,7 +21,7 @@ interface GameStore {
   // Actions
   setStatus: (status: ConnectionStatus) => void;
   setClientId: (clientId: string | null) => void;
-  setSessionToken: (token: string | null) => void;
+  setPlayerId: (playerId: string | null) => void;
   setGameState: (state: GameState | null) => void;
   setPlayerState: (state: PlayerGameState | null) => void;
   setLastMessage: (message: ServerMessage | null) => void;
@@ -38,7 +38,7 @@ export const useGameStore = create<GameStore>()(
       // Initial state
       status: "disconnected",
       clientId: null,
-      sessionToken: null,
+      playerId: null,
       gameState: null,
       playerState: null,
       lastMessage: null,
@@ -47,12 +47,12 @@ export const useGameStore = create<GameStore>()(
       // Actions
       setStatus: (status: ConnectionStatus) => set({ status }),
       setClientId: (clientId: string | null) => set({ clientId }),
-      setSessionToken: (token: string | null) => {
-        set({ sessionToken: token });
-        if (token) {
-          localStorage.setItem("botc_session_token", token);
+      setPlayerId: (playerId: string | null) => {
+        set({ playerId });
+        if (playerId) {
+          localStorage.setItem("botc_player_id", playerId);
         } else {
-          localStorage.removeItem("botc_session_token");
+          localStorage.removeItem("botc_player_id");
         }
       },
       setGameState: (state: GameState | null) => set({ gameState: state }),
@@ -72,7 +72,7 @@ export const useGameStore = create<GameStore>()(
             
           case "LOBBY_CREATED":
           case "LOBBY_JOINED":
-            get().setSessionToken(message.sessionToken);
+            get().setPlayerId(message.playerId);
             break;
             
           case "GAME_STATE":
@@ -156,7 +156,7 @@ export const useGameStore = create<GameStore>()(
     }),
     {
       name: "botc-store",
-      partialize: (state: GameStore) => ({ sessionToken: state.sessionToken }),
+      partialize: (state: GameStore) => ({ playerId: state.playerId }),
     }
   )
 );

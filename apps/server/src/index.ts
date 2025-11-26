@@ -39,17 +39,17 @@ app.get("/", (c) => {
 
 // REST endpoint for fetching game state
 app.get("/api/game", async (c) => {
-  const sessionToken = c.req.header("X-Session-Token");
+  const playerId = c.req.header("X-Player-Id");
 
-  if (!sessionToken) {
-    return c.json({ error: "Missing session token" }, 401);
+  if (!playerId) {
+    return c.json({ error: "Missing player id" }, 401);
   }
 
-  // Find player by session token
-  const player = await playerService.findBySessionToken(sessionToken);
+  // Find player by id
+  const player = await playerService.findById(playerId);
 
   if (!player) {
-    return c.json({ error: "Invalid session token" }, 401);
+    return c.json({ error: "Invalid player id" }, 401);
   }
 
   // If storyteller, return full game state
@@ -72,16 +72,16 @@ app.get("/api/game", async (c) => {
 // REST endpoint for updating token positions (debounced by client)
 app.put("/api/tokens/:lobbyId/:characterId", async (c) => {
   const { lobbyId, characterId } = c.req.param();
-  const sessionToken = c.req.header("X-Session-Token");
+  const playerId = c.req.header("X-Player-Id");
 
-  if (!sessionToken) {
-    return c.json({ error: "Missing session token" }, 401);
+  if (!playerId) {
+    return c.json({ error: "Missing player id" }, 401);
   }
 
   // Verify storyteller
-  const player = await playerService.findBySessionTokenAndLobby(sessionToken, lobbyId);
+  const player = await playerService.findById(playerId);
 
-  if (!player?.isStoryteller) {
+  if (!player || player.lobbyId !== lobbyId || !player.isStoryteller) {
     return c.json({ error: "Unauthorized" }, 403);
   }
 
@@ -122,7 +122,7 @@ app.get(
               await handleCreateLobby(clientId, message.playerCount, message.script);
               break;
             case "JOIN_LOBBY":
-              await handleJoinLobby(clientId, message.code, message.name, message.sessionToken);
+              await handleJoinLobby(clientId, message.code, message.name, message.playerId);
               break;
             case "SELECT_CHARACTERS":
               await handleSelectCharacters(clientId, message.characterIds);
@@ -134,7 +134,7 @@ app.get(
               await handleRemovePlayer(clientId, message.playerId);
               break;
             case "RECONNECT":
-              await handleReconnect(clientId, message.sessionToken);
+              await handleReconnect(clientId, message.playerId);
               break;
             default:
               (ws as any).send(

@@ -111,17 +111,17 @@ export interface PlayerGameState {
 // Client -> Server messages
 export type ClientMessage =
   | { type: "CREATE_LOBBY"; playerCount: number; script: ScriptId }
-  | { type: "JOIN_LOBBY"; code: string; name: string; sessionToken?: string }
+  | { type: "JOIN_LOBBY"; code: string; name: string; playerId?: string }
   | { type: "SELECT_CHARACTERS"; characterIds: string[] }
   | { type: "START_GAME" }
   | { type: "REMOVE_PLAYER"; playerId: string }
-  | { type: "RECONNECT"; sessionToken: string };
+  | { type: "RECONNECT"; playerId: string };
 
 // Server -> Client messages
 export type ServerMessage =
   | { type: "CONNECTED"; clientId: string }
-  | { type: "LOBBY_CREATED"; lobbyId: string; code: string; sessionToken: string }
-  | { type: "LOBBY_JOINED"; lobbyId: string; playerId: string; sessionToken: string }
+  | { type: "LOBBY_CREATED"; lobbyId: string; code: string; playerId: string }
+  | { type: "LOBBY_JOINED"; lobbyId: string; playerId: string }
   | { type: "PLAYER_JOINED"; player: PlayerInfo }
   | { type: "PLAYER_LEFT"; playerId: string }
   | { type: "PLAYER_DISCONNECTED"; playerId: string }
@@ -145,48 +145,3 @@ export function getOtherNightOrder(characters: Character[]): Character[] {
     .filter((c) => c.otherNightOrder !== undefined)
     .sort((a, b) => (a.otherNightOrder ?? 0) - (b.otherNightOrder ?? 0));
 }
-
-// Utility: Validate character selection against composition rules
-export function validateCharacterSelection(
-  characterIds: string[],
-  playerCount: number,
-  script: ScriptId
-): { valid: boolean; error?: string } {
-  const composition = TEAM_COMPOSITION[playerCount];
-  if (!composition) {
-    return { valid: false, error: `Invalid player count: ${playerCount}` };
-  }
-
-  const scriptData = SCRIPTS[script];
-  if (!scriptData) {
-    return { valid: false, error: `Invalid script: ${script}` };
-  }
-
-  const characters = characterIds.map((id) => scriptData.characters.find((c) => c.id === id));
-  if (characters.some((c) => !c)) {
-    return { valid: false, error: "Unknown character in selection" };
-  }
-
-  const counts = {
-    townsfolk: characters.filter((c) => c?.type === "townsfolk").length,
-    outsiders: characters.filter((c) => c?.type === "outsider").length,
-    minions: characters.filter((c) => c?.type === "minion").length,
-    demons: characters.filter((c) => c?.type === "demon").length,
-  };
-
-  if (counts.townsfolk !== composition.townsfolk) {
-    return { valid: false, error: `Need ${composition.townsfolk} townsfolk, got ${counts.townsfolk}` };
-  }
-  if (counts.outsiders !== composition.outsiders) {
-    return { valid: false, error: `Need ${composition.outsiders} outsiders, got ${counts.outsiders}` };
-  }
-  if (counts.minions !== composition.minions) {
-    return { valid: false, error: `Need ${composition.minions} minions, got ${counts.minions}` };
-  }
-  if (counts.demons !== composition.demons) {
-    return { valid: false, error: `Need ${composition.demons} demons, got ${counts.demons}` };
-  }
-
-  return { valid: true };
-}
-

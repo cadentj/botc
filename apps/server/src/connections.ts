@@ -5,7 +5,6 @@ export interface ClientInfo {
     send: (data: string) => void;
     close: () => void;
   };
-  sessionToken?: string;
   playerId?: string;
   lobbyId?: string;
 }

@@ -1,7 +1,51 @@
 import { useState, useMemo } from "react";
 import { CharacterCard } from "./CharacterToken";
 import type { ScriptId, Character } from "@org/types";
-import { SCRIPTS, TEAM_COMPOSITION, validateCharacterSelection } from "@org/types";
+import { SCRIPTS, TEAM_COMPOSITION } from "@org/types";
+
+// Utility: Validate character selection against composition rules
+function validateCharacterSelection(
+  characterIds: string[],
+  playerCount: number,
+  script: ScriptId
+): { valid: boolean; error?: string } {
+  const composition = TEAM_COMPOSITION[playerCount];
+  if (!composition) {
+    return { valid: false, error: `Invalid player count: ${playerCount}` };
+  }
+
+  const scriptData = SCRIPTS[script];
+  if (!scriptData) {
+    return { valid: false, error: `Invalid script: ${script}` };
+  }
+
+  const characters = characterIds.map((id) => scriptData.characters.find((c) => c.id === id));
+  if (characters.some((c) => !c)) {
+    return { valid: false, error: "Unknown character in selection" };
+  }
+
+  const counts = {
+    townsfolk: characters.filter((c) => c?.type === "townsfolk").length,
+    outsiders: characters.filter((c) => c?.type === "outsider").length,
+    minions: characters.filter((c) => c?.type === "minion").length,
+    demons: characters.filter((c) => c?.type === "demon").length,
+  };
+
+  if (counts.townsfolk !== composition.townsfolk) {
+    return { valid: false, error: `Need ${composition.townsfolk} townsfolk, got ${counts.townsfolk}` };
+  }
+  if (counts.outsiders !== composition.outsiders) {
+    return { valid: false, error: `Need ${composition.outsiders} outsiders, got ${counts.outsiders}` };
+  }
+  if (counts.minions !== composition.minions) {
+    return { valid: false, error: `Need ${composition.minions} minions, got ${counts.minions}` };
+  }
+  if (counts.demons !== composition.demons) {
+    return { valid: false, error: `Need ${composition.demons} demons, got ${counts.demons}` };
+  }
+
+  return { valid: true };
+}
 
 interface CharacterSelectProps {
   script: ScriptId;

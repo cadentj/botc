@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { players } from "../db/schema.js";
 
@@ -9,17 +9,6 @@ export const playerService = {
     });
   },
 
-  findBySessionToken: async (sessionToken: string) => {
-    return db.query.players.findFirst({
-      where: eq(players.sessionToken, sessionToken),
-    });
-  },
-
-  findBySessionTokenAndLobby: async (sessionToken: string, lobbyId: string) => {
-    return db.query.players.findFirst({
-      where: and(eq(players.sessionToken, sessionToken), eq(players.lobbyId, lobbyId)),
-    });
-  },
 
   findByLobbyId: async (lobbyId: string) => {
     return db.query.players.findMany({
@@ -31,7 +20,6 @@ export const playerService = {
     id: string;
     lobbyId: string;
     name: string;
-    sessionToken: string;
     isStoryteller: boolean;
     characterId?: string | null;
   }) => {

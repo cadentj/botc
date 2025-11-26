@@ -16,6 +16,7 @@ function JoinPage() {
   // Use individual selectors to ensure proper re-renders
   const status = useGameStore((s) => s.status);
   const playerState = useGameStore((s) => s.playerState);
+  const playerId = useGameStore((s) => s.playerId);
   const error = useGameStore((s) => s.error);
   const clearError = useGameStore((s) => s.clearError);
 
@@ -39,7 +40,12 @@ function JoinPage() {
 
     setIsJoining(true);
     clearError();
-    send({ type: "JOIN_LOBBY", code: code.toUpperCase(), name: name.trim() });
+    send({ 
+      type: "JOIN_LOBBY", 
+      code: code.toUpperCase(), 
+      name: name.trim(),
+      playerId: playerId || undefined
+    });
   };
 
   const isConnected = status === "connected";

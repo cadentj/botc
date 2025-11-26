@@ -12,24 +12,24 @@ function getApiUrl(): string {
 
 // Fetch initial game state
 export function useInitialGameState() {
-  const sessionToken = useGameStore((s) => s.sessionToken);
+  const playerId = useGameStore((s) => s.playerId);
 
   const query = useQuery<GameState | PlayerGameState>({
-    queryKey: ["game", sessionToken],
+    queryKey: ["game", playerId],
     queryFn: async () => {
-      if (!sessionToken) {
-        throw new Error("No session token");
+      if (!playerId) {
+        throw new Error("No player id");
       }
 
       const res = await fetch(`${getApiUrl()}/api/game`, {
-        headers: { "X-Session-Token": sessionToken },
+        headers: { "X-Player-Id": playerId },
       });
 
       if (!res.ok) {
         if (res.status === 401) {
-          // Invalid session token, clear it
-          useGameStore.getState().setSessionToken(null);
-          throw new Error("Session expired");
+          // Invalid player id, clear it
+          useGameStore.getState().setPlayerId(null);
+          throw new Error("Player not found");
         }
         throw new Error(`Failed to fetch game state: ${res.statusText}`);
       }
@@ -46,7 +46,7 @@ export function useInitialGameState() {
       
       return data;
     },
-    enabled: !!sessionToken,
+    enabled: !!playerId,
     retry: false,
   });
   
@@ -55,7 +55,7 @@ export function useInitialGameState() {
 
 // Token position mutation
 export function useUpdateTokenPosition() {
-  const sessionToken = useGameStore((s) => s.sessionToken);
+  const playerId = useGameStore((s) => s.playerId);
 
   return useMutation({
     mutationFn: async ({
@@ -67,8 +67,8 @@ export function useUpdateTokenPosition() {
       characterId: string;
       position: { x: number; y: number };
     }) => {
-      if (!sessionToken) {
-        throw new Error("No session token");
+      if (!playerId) {
+        throw new Error("No player id");
       }
 
       const res = await fetch(
@@ -77,7 +77,7 @@ export function useUpdateTokenPosition() {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            "X-Session-Token": sessionToken,
+            "X-Player-Id": playerId,
           },
           body: JSON.stringify(position),
         }

@@ -30,7 +30,6 @@ export async function handleCreateLobby(
 
   const lobbyId = nanoid();
   const storytellerId = nanoid();
-  const sessionToken = nanoid(32);
 
   // Create lobby
   await lobbyService.create({
@@ -47,13 +46,11 @@ export async function handleCreateLobby(
     id: storytellerId,
     lobbyId,
     name: "Storyteller",
-    sessionToken,
     isStoryteller: true,
   });
 
   // Update client info
   connectionManager.update(clientId, {
-    sessionToken,
     playerId: storytellerId,
     lobbyId,
   });
@@ -62,7 +59,7 @@ export async function handleCreateLobby(
     type: "LOBBY_CREATED",
     lobbyId,
     code,
-    sessionToken,
+    playerId: storytellerId,
   });
 
   // Send initial game state
@@ -76,7 +73,7 @@ export async function handleJoinLobby(
   clientId: string,
   code: string,
   name: string,
-  existingSessionToken?: string
+  existingPlayerId?: string
 ): Promise<void> {
   const lobby = await lobbyService.findByCode(code.toUpperCase());
 
@@ -89,17 +86,13 @@ export async function handleJoinLobby(
     return;
   }
 
-  // Check for reconnection via session token
-  if (existingSessionToken) {
-    const existingPlayer = await playerService.findBySessionTokenAndLobby(
-      existingSessionToken,
-      lobby.id
-    );
+  // Check for reconnection via player id
+  if (existingPlayerId) {
+    const existingPlayer = await playerService.findById(existingPlayerId);
 
-    if (existingPlayer) {
+    if (existingPlayer && existingPlayer.lobbyId === lobby.id) {
       // Reconnect existing player
       connectionManager.update(clientId, {
-        sessionToken: existingSessionToken,
         playerId: existingPlayer.id,
         lobbyId: lobby.id,
       });
@@ -143,18 +136,15 @@ export async function handleJoinLobby(
 
   // Create new player
   const playerId = nanoid();
-  const sessionToken = nanoid(32);
 
   await playerService.create({
     id: playerId,
     lobbyId: lobby.id,
     name,
-    sessionToken,
     isStoryteller: false,
   });
 
   connectionManager.update(clientId, {
-    sessionToken,
     playerId,
     lobbyId: lobby.id,
   });
@@ -164,7 +154,6 @@ export async function handleJoinLobby(
     type: "LOBBY_JOINED",
     lobbyId: lobby.id,
     playerId,
-    sessionToken,
   });
 
   // Broadcast to others in lobby
