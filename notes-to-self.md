@@ -10,10 +10,14 @@ Apparently this is a standard pattern? `deploy` respects the `.gitignore` so `no
 
 I'm stupid but til that the `https://` before a url designates the protocol. And when hitting a websocket, you prepend the url with `ws://` or `wss://` (unencrypted or encrypted).
 
-
 ## On node modules w dependencies
 
 Make sure to run the `pnpm approve-builds` when installing `better-sqlite3
+
+
+## On security
+
+- I don't verify that the storyteller ID matches the lobby ID when actions are taken. Lazy, less code, nobody will hack things.
 
 # TODO
 
@@ -32,3 +36,9 @@ Game Flow
    - The story teller has another tab with an info sheet that just has the order of what roles to visit each night. 
 
 (more soon)
+
+# Infra
+
+backend organization
+- state dir for game state classes
+- services dir for different inter

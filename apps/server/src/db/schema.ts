@@ -21,9 +21,6 @@ export const players = sqliteTable("players", {
   isStoryteller: integer("is_storyteller", { mode: "boolean" })
     .notNull()
     .default(false),
-  connected: integer("connected", { mode: "boolean" })
-    .notNull()
-    .default(false),
   characterId: text("character_id"), // Assigned character from script
 });
 

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "49e1da61-a8bf-4dfa-b0b4-37e12c5dfadf",
+  "id": "78eab8dc-420b-4d25-b4f2-7981b91fe947",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "grimoire_tokens": {
@@ -187,14 +187,6 @@
         },
         "is_storyteller": {
           "name": "is_storyteller",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": false
-        },
-        "connected": {
-          "name": "connected",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,

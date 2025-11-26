@@ -122,36 +122,6 @@ export const useGameStore = create<GameStore>()(
             break;
           }
             
-          case "PLAYER_DISCONNECTED": {
-            const gs = get().gameState;
-            if (gs) {
-              set({
-                gameState: {
-                  ...gs,
-                  players: gs.players.map((p: PlayerInfo) =>
-                    p.id === message.playerId ? { ...p, connected: false } : p
-                  ),
-                },
-              });
-            }
-            break;
-          }
-            
-          case "PLAYER_RECONNECTED": {
-            const gs2 = get().gameState;
-            if (gs2) {
-              set({
-                gameState: {
-                  ...gs2,
-                  players: gs2.players.map((p: PlayerInfo) =>
-                    p.id === message.playerId ? { ...p, connected: true } : p
-                  ),
-                },
-              });
-            }
-            break;
-          }
-            
           case "CHARACTERS_SELECTED": {
             const gs3 = get().gameState;
             if (gs3) {

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { useGameStore } from "../lib/store";
 import { useUpdateTokenPosition } from "../lib/api";
@@ -8,7 +8,6 @@ import { SCRIPTS } from "@org/types";
 export function Grimoire() {
   const gameState = useGameStore((s) => s.gameState);
   const [localPositions, setLocalPositions] = useState<Record<string, { x: number; y: number }>>({});
-  const pendingUpdates = useRef<Set<string>>(new Set());
   const updateTokenPosition = useUpdateTokenPosition();
 
   const savePosition = useDebouncedCallback(
@@ -23,8 +22,6 @@ export function Grimoire() {
         });
       } catch (error) {
         console.error("Failed to save token position:", error);
-      } finally {
-        pendingUpdates.current.delete(characterId);
       }
     },
     2000
@@ -34,7 +31,6 @@ export function Grimoire() {
     (characterId: string, position: { x: number; y: number }) => {
       // Update local state immediately for responsiveness
       setLocalPositions((prev) => ({ ...prev, [characterId]: position }));
-      pendingUpdates.current.add(characterId);
       // Debounce the actual save
       savePosition(characterId, position);
     },

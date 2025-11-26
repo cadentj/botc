@@ -81,7 +81,6 @@ export interface PlayerInfo {
   id: string;
   name: string;
   isStoryteller: boolean;
-  connected: boolean;
 }
 
 // Full game state sent to storyteller

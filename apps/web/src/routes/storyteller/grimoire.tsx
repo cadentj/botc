@@ -71,12 +71,6 @@ function GrimoirePage() {
                   .filter((p) => !p.isStoryteller)
                   .map((player) => (
                     <li key={player.id} className="player-item">
-                      <span
-                        className="player-status"
-                        style={{
-                          backgroundColor: player.connected ? "#10b981" : "#6b7280",
-                        }}
-                      />
                       <span className="player-name">{player.name}</span>
                       {gameState.characterAssignments[player.id] && (
                         <span className="player-character">

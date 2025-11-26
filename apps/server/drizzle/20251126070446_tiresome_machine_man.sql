@@ -26,7 +26,6 @@ CREATE TABLE `players` (
 	`name` text NOT NULL,
 	`session_token` text NOT NULL,
 	`is_storyteller` integer DEFAULT false NOT NULL,
-	`connected` integer DEFAULT false NOT NULL,
 	`character_id` text,
 	FOREIGN KEY (`lobby_id`) REFERENCES `lobbies`(`id`) ON UPDATE no action ON DELETE cascade
 );
