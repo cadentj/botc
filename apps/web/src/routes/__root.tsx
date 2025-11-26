@@ -9,6 +9,9 @@ export const Route = createRootRoute({
 
 function RootComponent() {
   useEffect(() => {
+    // Enable dark mode
+    document.documentElement.classList.add('dark');
+    
     // Initialize websocket connection on mount
     connect();
     
