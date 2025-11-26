@@ -1,40 +1,33 @@
-import { useState, useCallback } from "react";
-import { useDebouncedCallback } from "use-debounce";
+import { useState, useCallback, useMemo } from "react";
 import { useGameStore } from "../lib/store";
-import { useUpdateTokenPosition } from "../lib/api";
 import { CharacterToken } from "./CharacterToken";
 import { SCRIPTS } from "@org/types";
 
 export function Grimoire() {
   const gameState = useGameStore((s) => s.gameState);
   const [localPositions, setLocalPositions] = useState<Record<string, { x: number; y: number }>>({});
-  const updateTokenPosition = useUpdateTokenPosition();
 
-  const savePosition = useDebouncedCallback(
-    async (characterId: string, position: { x: number; y: number }) => {
-      if (!gameState) return;
-
-      try {
-        await updateTokenPosition.mutateAsync({
-          lobbyId: gameState.lobbyId,
-          characterId,
-          position,
-        });
-      } catch (error) {
-        console.error("Failed to save token position:", error);
-      }
-    },
-    2000
-  );
+  // Compute initial positions using circle layout
+  const initialPositions = useMemo(() => {
+    if (!gameState?.tokens) return {};
+    const positions: Record<string, { x: number; y: number }> = {};
+    const tokens = gameState.tokens;
+    for (let i = 0; i < tokens.length; i++) {
+      const angle = (2 * Math.PI * i) / tokens.length - Math.PI / 2;
+      const radius = 200;
+      const x = Math.round(250 + radius * Math.cos(angle));
+      const y = Math.round(250 + radius * Math.sin(angle));
+      positions[tokens[i].characterId] = { x, y };
+    }
+    return positions;
+  }, [gameState]);
 
   const handleTokenDragEnd = useCallback(
     (characterId: string, position: { x: number; y: number }) => {
       // Update local state immediately for responsiveness
       setLocalPositions((prev) => ({ ...prev, [characterId]: position }));
-      // Debounce the actual save
-      savePosition(characterId, position);
     },
-    [savePosition]
+    []
   );
 
   if (!gameState) {
@@ -72,8 +65,8 @@ export function Grimoire() {
           const character = script.characters.find((c) => c.id === token.characterId);
           if (!character) return null;
 
-          // Use local position if we have a pending update, otherwise use server state
-          const position = localPositions[token.characterId] ?? token.position;
+          // Use dragged position if user has moved this token, otherwise use initial computed position
+          const position = localPositions[token.characterId] ?? initialPositions[token.characterId] ?? { x: 250, y: 250 };
 
           return (
             <CharacterToken

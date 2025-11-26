@@ -14,6 +14,11 @@ I'm stupid but til that the `https://` before a url designates the protocol. And
 
 Make sure to run the `pnpm approve-builds` when installing `better-sqlite3
 
+## On the vercel config file
+
+> This is a classic SPA routing issue. When you reload on a client-side route like /storyteller/grimoire, Vercel tries to find an actual file at that path instead of letting your client-side router handle it.
+
+- From Opus 4.5
 
 ## On security
 
@@ -35,10 +40,6 @@ Game Flow
 6. While players are joining the game, the storyteller can drag tokens corresponding to the characters around a virtual grimoire. Dragging tokens / arranging them is useful for the story teller to keep track of where users are in a room. 
    - The story teller has another tab with an info sheet that just has the order of what roles to visit each night. 
 
-(more soon)
+---
 
-# Infra
-
-backend organization
-- state dir for game state classes
-- services dir for different inter
+7. the 

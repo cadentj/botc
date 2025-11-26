@@ -5,14 +5,13 @@ import type {
   PlayerInfo,
   GrimoireToken as GrimoireTokenType,
 } from "@org/types";
-import { lobbyService, playerService, tokenService } from "../services/index.js";
+import { lobbyService, playerService } from "../services/index.js";
 
 export async function getGameState(lobbyId: string): Promise<GameState | null> {
   const lobby = await lobbyService.findById(lobbyId);
   if (!lobby) return null;
 
   const lobbyPlayers = await playerService.findByLobbyId(lobbyId);
-  const tokens = await tokenService.findByLobbyId(lobbyId);
 
   const playerInfos: PlayerInfo[] = lobbyPlayers.map((p) => ({
     id: p.id,
@@ -20,10 +19,12 @@ export async function getGameState(lobbyId: string): Promise<GameState | null> {
     isStoryteller: p.isStoryteller,
   }));
 
-  const tokenData: GrimoireTokenType[] = tokens.map((t) => ({
-    characterId: t.characterId,
-    playerId: t.playerId ?? undefined,
-    position: { x: t.positionX, y: t.positionY },
+  const tokenData: GrimoireTokenType[] = (lobby.selectedCharacters 
+    ? JSON.parse(lobby.selectedCharacters) 
+    : []
+  ).map((characterId: string) => ({
+    characterId,
+    playerId: lobbyPlayers.find(p => p.characterId === characterId)?.id,
   }));
 
   const characterAssignments: Record<string, string> = {};

@@ -1,6 +1,5 @@
 import { connectionManager } from "../connections.js";
 import { lobbyService } from "../services/index.js";
-import { tokenService } from "../services/tokens.js";
 import { getGameState } from "../state/index.js";
 
 export async function handleSelectCharacters(
@@ -26,27 +25,6 @@ export async function handleSelectCharacters(
 
   // Update lobby
   await lobbyService.updatePhaseAndCharacters(client.lobbyId, "waiting_for_players", characterIds);
-
-  // Create grimoire tokens for each character
-  const tokens = [];
-  for (let i = 0; i < characterIds.length; i++) {
-    const characterId = characterIds[i];
-    if (!characterId) continue;
-
-    const angle = (2 * Math.PI * i) / characterIds.length - Math.PI / 2;
-    const radius = 200;
-    const x = Math.round(250 + radius * Math.cos(angle));
-    const y = Math.round(250 + radius * Math.sin(angle));
-
-    tokens.push({
-      lobbyId: client.lobbyId,
-      characterId,
-      positionX: x,
-      positionY: y,
-    });
-  }
-
-  await tokenService.createMany(tokens);
 
   // Broadcast to all in lobby
   connectionManager.broadcastToLobby(client.lobbyId, {

@@ -5,7 +5,7 @@ import { logger } from "hono/logger";
 import { cors } from "hono/cors";
 import type { ClientMessage } from "@org/types";
 import { connectionManager } from "./connections.js";
-import { lobbyService, playerService, tokenService } from "./services/index.js";
+import { lobbyService, playerService } from "./services/index.js";
 import { getGameState, getPlayerGameState } from "./state/index.js";
 import {
   handleCreateLobby,
@@ -68,30 +68,6 @@ app.get("/api/game", async (c) => {
   }
   return c.json(playerGameState);
 });
-
-// REST endpoint for updating token positions (debounced by client)
-app.put("/api/tokens/:lobbyId/:characterId", async (c) => {
-  const { lobbyId, characterId } = c.req.param();
-  const playerId = c.req.header("X-Player-Id");
-
-  if (!playerId) {
-    return c.json({ error: "Missing player id" }, 401);
-  }
-
-  // Verify storyteller
-  const player = await playerService.findById(playerId);
-
-  if (!player || player.lobbyId !== lobbyId || !player.isStoryteller) {
-    return c.json({ error: "Unauthorized" }, 403);
-  }
-
-  const body = await c.req.json<{ x: number; y: number }>();
-
-  await tokenService.updatePosition(lobbyId, characterId, body.x, body.y);
-
-  return c.json({ success: true });
-});
-
 
 // WebSocket endpoint
 app.get(

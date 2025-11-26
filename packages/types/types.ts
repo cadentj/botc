@@ -73,7 +73,6 @@ export type GamePhase = "setup" | "character_select" | "waiting_for_players" | "
 export interface GrimoireToken {
   characterId: string;
   playerId?: string;
-  position: { x: number; y: number };
 }
 
 // Player info (client-safe, no secrets)
