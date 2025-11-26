@@ -3,13 +3,18 @@ import { SCRIPTS } from "@org/types";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useDraggable } from "@dnd-kit/core";
-import { DynamicIcon, type IconName } from "lucide-react/dynamic";
-import { Plus, X } from "lucide-react";
+import {
+  Plus, X, Shirt, BookOpen, Search, ChefHat, Heart, Sparkles, Skull, Shield,
+  Bird, Flower2, Crosshair, Swords, Crown, Wine, Beer, Ghost, Cross,
+  FlaskConical, Eye, Castle, HeartCrack, Flame, type LucideIcon,
+} from "lucide-react";
 
-// Convert PascalCase to kebab-case for DynamicIcon
-function toKebabCase(str: string): string {
-  return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
-}
+// Static icon map - only includes icons we actually use
+const ICONS: Record<string, LucideIcon> = {
+  Shirt, BookOpen, Search, ChefHat, Heart, Sparkles, Skull, Shield, Bird,
+  Flower2, Crosshair, Swords, Crown, Wine, Beer, Ghost, Cross, FlaskConical,
+  Eye, Castle, HeartCrack, Flame,
+};
 
 interface CharacterIconProps {
   iconName: string;
@@ -18,13 +23,8 @@ interface CharacterIconProps {
 }
 
 export function CharacterIcon({ iconName, className, size = 16 }: CharacterIconProps) {
-  return (
-    <DynamicIcon
-      name={toKebabCase(iconName) as IconName}
-      className={className}
-      size={size}
-    />
-  );
+  const Icon = ICONS[iconName];
+  return Icon ? <Icon className={className} size={size} /> : null;
 }
 
 interface CharacterTokenProps {
