@@ -1,8 +1,0 @@
-node_modules
-dist
-drizzle
-*.log
-.env
-.env.local
-data/
-

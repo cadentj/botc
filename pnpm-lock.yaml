@@ -3,6 +3,7 @@ lockfileVersion: '9.0'
 settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
+  injectWorkspacePackages: true
 
 importers:
 
@@ -23,9 +24,6 @@ importers:
       better-sqlite3:
         specifier: ^11.7.0
         version: 11.10.0
-      drizzle-kit:
-        specifier: ^0.30.0
-        version: 0.30.6
       drizzle-orm:
         specifier: ^0.36.4
         version: 0.36.4(@types/better-sqlite3@7.6.13)(@types/react@19.2.7)(better-sqlite3@11.10.0)(react@19.2.0)
@@ -35,9 +33,6 @@ importers:
       nanoid:
         specifier: ^5.0.9
         version: 5.1.6
-      tsx:
-        specifier: ^4.19.2
-        version: 4.20.6
     devDependencies:
       '@org/types':
         specifier: workspace:*
@@ -51,6 +46,12 @@ importers:
       '@types/node':
         specifier: ^24.10.1
         version: 24.10.1
+      drizzle-kit:
+        specifier: ^0.30.0
+        version: 0.30.6
+      tsx:
+        specifier: ^4.19.2
+        version: 4.20.6
       typescript:
         specifier: ~5.9.3
         version: 5.9.3

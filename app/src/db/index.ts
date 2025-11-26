@@ -1,6 +1,5 @@
 import Database, { type Database as DatabaseType } from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import * as schema from "./schema.js";
 import { dirname, join } from "node:path";
 import { mkdirSync } from "node:fs";
@@ -19,13 +18,5 @@ mkdirSync(dirname(dbPath), { recursive: true });
 const sqlite: DatabaseType = new Database(dbPath);
 
 export const db = drizzle(sqlite, { schema });
-
-// Run migrations on startup
-const migrationsFolder =
-  process.env.NODE_ENV === "production"
-    ? "./drizzle"
-    : join(__dirname, "../../drizzle");
-
-migrate(db, { migrationsFolder });
 
 export { sqlite };
