@@ -1,14 +1,6 @@
 import type { ClientMessage, ServerMessage } from "@org/types";
 import { useGameStore } from "./store";
 
-function getServerUrl(): string {
-  if (import.meta.env.DEV) {
-    return "ws://botc-server.fly.dev/ws";
-  }
-  // Production: use the server subdomain
-  return `wss://${window.location.hostname.replace("web", "server")}/ws`;
-}
-
 class WebSocketManager {
   private ws: WebSocket | null = null;
   private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -26,7 +18,10 @@ class WebSocketManager {
     this.store.setStatus("connecting");
     this.store.clearError();
 
-    const ws = new WebSocket(getServerUrl());
+    const backendUrl = import.meta.env.VITE_BACKEND_URL
+      .replace("https://", "wss://")
+      .replace("http://", "ws://");
+    const ws = new WebSocket(backendUrl + "/ws");
 
     ws.onopen = () => {
       this.store.setStatus("connected");
