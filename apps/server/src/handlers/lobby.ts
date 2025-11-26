@@ -147,21 +147,8 @@ export async function handleJoinLobby(
     playerId,
   });
 
-  // Broadcast to others in lobby
-  connectionManager.broadcastToLobby(
-    lobby.id,
-    {
-      type: "PLAYER_JOINED",
-      player: {
-        id: playerId,
-        name,
-        isStoryteller: false,
-      },
-    },
-    clientId
-  );
-
   // If game is in waiting_for_players phase, assign a character
+  let assignedCharacterId: string | undefined;
   if (lobby.phase === "waiting_for_players" && lobby.selectedCharacters) {
     const selectedChars: string[] = JSON.parse(lobby.selectedCharacters);
     const assignedChars = existingPlayers.filter((p) => p.characterId).map((p) => p.characterId);
@@ -171,6 +158,7 @@ export async function handleJoinLobby(
     if (availableChars.length > 0) {
       const randomChar = availableChars[Math.floor(Math.random() * availableChars.length)]!;
       await playerService.updateCharacterId(playerId, randomChar);
+      assignedCharacterId = randomChar;
 
       const script = SCRIPTS[lobby.script];
       const character = script?.characters.find((c) => c.id === randomChar);
@@ -183,6 +171,21 @@ export async function handleJoinLobby(
       }
     }
   }
+
+  // Broadcast to others in lobby (after character assignment so we can include it)
+  connectionManager.broadcastToLobby(
+    lobby.id,
+    {
+      type: "PLAYER_JOINED",
+      player: {
+        id: playerId,
+        name,
+        isStoryteller: false,
+      },
+      characterId: assignedCharacterId,
+    },
+    clientId
+  );
 
   // Send player state
   const playerState = await getPlayerGameState(playerId);

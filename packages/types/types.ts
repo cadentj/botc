@@ -121,7 +121,7 @@ export type ServerMessage =
   | { type: "CONNECTED"; clientId: string }
   | { type: "LOBBY_CREATED"; lobbyId: string; code: string; playerId: string }
   | { type: "LOBBY_JOINED"; lobbyId: string; playerId: string }
-  | { type: "PLAYER_JOINED"; player: PlayerInfo }
+  | { type: "PLAYER_JOINED"; player: PlayerInfo; characterId?: string }
   | { type: "PLAYER_LEFT"; playerId: string }
   | { type: "PLAYER_DISCONNECTED"; playerId: string }
   | { type: "PLAYER_RECONNECTED"; playerId: string }

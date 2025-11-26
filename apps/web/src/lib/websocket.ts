@@ -4,6 +4,7 @@ import { useGameStore } from "./store";
 class WebSocketManager {
   private ws: WebSocket | null = null;
   private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+  private shouldReconnect = true;
 
   // Always get fresh state/actions from the store
   private get store() {
@@ -11,10 +12,11 @@ class WebSocketManager {
   }
 
   connect(): void {
-    if (this.ws?.readyState === WebSocket.OPEN) {
+    if (this.ws?.readyState === WebSocket.OPEN || this.ws?.readyState === WebSocket.CONNECTING) {
       return;
     }
 
+    this.shouldReconnect = true;
     this.store.setStatus("connecting");
     this.store.clearError();
 
@@ -48,10 +50,12 @@ class WebSocketManager {
       this.store.setStatus("disconnected");
       this.ws = null;
 
-      // Auto-reconnect after 3 seconds
-      this.reconnectTimeout = setTimeout(() => {
-        this.connect();
-      }, 3000);
+      // Auto-reconnect after 3 seconds (unless intentionally disconnected)
+      if (this.shouldReconnect) {
+        this.reconnectTimeout = setTimeout(() => {
+          this.connect();
+        }, 3000);
+      }
     };
 
     ws.onerror = () => {
@@ -66,6 +70,7 @@ class WebSocketManager {
   }
 
   disconnect(): void {
+    this.shouldReconnect = false;
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;
@@ -87,11 +92,10 @@ class WebSocketManager {
 // Singleton instance
 const wsManager = new WebSocketManager();
 
-// Export functions for use in components
-export function connect(): void {
-  wsManager.connect();
-}
+// Initialize connection immediately when module loads
+wsManager.connect();
 
+// Export functions for use in components
 export function disconnect(): void {
   wsManager.disconnect();
 }

@@ -99,10 +99,14 @@ export const useGameStore = create<GameStore>()(
           case "PLAYER_JOINED": {
             const currentGameState = get().gameState;
             if (currentGameState) {
+              const newCharacterAssignments = message.characterId
+                ? { ...currentGameState.characterAssignments, [message.player.id]: message.characterId }
+                : currentGameState.characterAssignments;
               set({
                 gameState: {
                   ...currentGameState,
                   players: [...currentGameState.players, message.player],
+                  characterAssignments: newCharacterAssignments,
                 },
               });
             }
