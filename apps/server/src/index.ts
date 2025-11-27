@@ -2,7 +2,7 @@ import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { cors } from "hono/cors";
-import type { ScriptId, GamePhase } from "@org/types";
+
 import { SCRIPTS } from "@org/types";
 
 const app = new Hono();

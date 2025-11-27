@@ -45,3 +45,29 @@ Game Flow
 ---
 
 7. include helper tokens
+
+---
+
+some update thoughts after a *real* game: 
+- include instructions: 
+  - game instructions for reading to new players
+  - also on the user side in case they'd like to read that
+- include night helper cards
+  - "this is the demon"
+  - "these are your minions"
+  - "these roles are NOT in play"
+  - etc.
+- add dead / alive toggle on cards, dead has voted on cards
+- fix the drunk character
+  - should work like: the drunk *is* the token, and the user can attribute a character to that token that is not in play
+- add instructions to the player versions
+- add more specific guidance to the storyteller. e.g. 
+  - this person is next, point out these two players
+  - this character's ability tokens have not been added yet
+- include character abilities to the selection page
+- include player counts on the users as well
+
+- grimoire should display player names next to their tokens. 
+  - maybe a websocket conn until everyone in the game has joined
+  - or, just a reload button on the grimoire to pull in names? 
+  - a "create new lobby" button which pushes new roles to everyone?

@@ -7,7 +7,7 @@ import type { NodeProps } from "@xyflow/react";
 import {
   Plus, X, Shirt, BookOpen, Search, ChefHat, Heart, Sparkles, Skull, Shield,
   Bird, Flower2, Crosshair, Swords, Crown, Wine, Beer, Ghost, Cross,
-  FlaskConical, Eye, Castle, HeartCrack, Flame, type LucideIcon,
+  FlaskConical, Eye, Castle, HeartCrack, Flame, HeartPulse, type LucideIcon,
 } from "lucide-react";
 
 // Static icon map - only includes icons we actually use
@@ -32,6 +32,11 @@ export function CharacterIcon({ iconName, className, size = 16 }: CharacterIconP
 export interface CharacterTokenData extends Record<string, unknown> {
   character: Character;
   availableHelperTokens?: HelperToken[]; // helper tokens available for selection
+  isDead?: boolean;
+  onToggleDead?: () => void;
+  perceivedCharacterId?: string; // For Drunk: which Townsfolk they think they are
+  onPerceivedCharacterChange?: (characterId: string | undefined) => void;
+  availableTownsfolk?: Character[]; // For Drunk dropdown
 }
 
 interface CharacterTokenProps extends NodeProps {
@@ -46,10 +51,19 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 export function CharacterToken({ data }: CharacterTokenProps) {
-  const { character, availableHelperTokens = [] } = data;
+  const { 
+    character, 
+    availableHelperTokens = [],
+    isDead = false,
+    onToggleDead,
+    perceivedCharacterId,
+    onPerceivedCharacterChange,
+    availableTownsfolk = [],
+  } = data;
   const [helperTokens, setHelperTokens] = useState<string[]>([]);
 
   const typeColor = TYPE_COLORS[character.type] ?? "#6b7280";
+  const isDrunk = character.id === "drunk";
 
   // Get helper token objects for assigned tokens
   const assignedHelperTokens = availableHelperTokens.filter((ht) => helperTokens.includes(ht.id));
@@ -79,11 +93,46 @@ export function CharacterToken({ data }: CharacterTokenProps) {
     return char?.icon ?? "";
   };
 
+  // Get perceived character for Drunk
+  const perceivedCharacter = isDrunk && perceivedCharacterId
+    ? availableTownsfolk.find((c) => c.id === perceivedCharacterId)
+    : null;
+
+  const handleToggleDead = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggleDead?.();
+  };
+
   return (
     <div
-      className="flex flex-col size-24 items-center gap-1.5 p-4 bg-card border-2 rounded-lg select-none min-w-[160px] cursor-grab active:cursor-grabbing"
+      className={`flex flex-col size-24 items-center gap-1.5 p-4 bg-card border-2 rounded-lg select-none min-w-[160px] cursor-grab active:cursor-grabbing relative ${
+        isDead ? "opacity-60 grayscale" : ""
+      }`}
       style={{ borderColor: typeColor }}
     >
+      {/* Dead overlay */}
+      {isDead && (
+        <div className="absolute inset-0 bg-destructive/20 rounded-lg flex items-center justify-center pointer-events-none">
+          <Skull className="h-8 w-8 text-destructive" />
+        </div>
+      )}
+      
+      {/* Alive/Dead toggle button */}
+      {onToggleDead && (
+        <button
+          className="absolute top-1 right-1 h-5 w-5 rounded-full bg-background border border-border hover:bg-muted flex items-center justify-center z-10"
+          onClick={handleToggleDead}
+          onMouseDown={(e) => e.stopPropagation()}
+          title={isDead ? "Mark as alive" : "Mark as dead"}
+        >
+          {isDead ? (
+            <Skull className="h-3 w-3 text-destructive" />
+          ) : (
+            <HeartPulse className="h-3 w-3 text-green-600" />
+          )}
+        </button>
+      )}
+
       <div className="flex items-center gap-1.5 justify-center w-full">
         <CharacterIcon iconName={character.icon} className="text-foreground" size={20} />
         {unassignedHelperTokens.length > 0 && (
@@ -116,7 +165,57 @@ export function CharacterToken({ data }: CharacterTokenProps) {
           </Select>
         )}
       </div>
-      <span className="text-sm font-medium text-foreground whitespace-nowrap">{character.name}</span>
+      
+      {/* Character name - show perceived character for Drunk if assigned */}
+      {isDrunk && perceivedCharacter ? (
+        <div className="flex flex-col items-center gap-0.5">
+          <span className="text-sm font-medium text-foreground whitespace-nowrap">{perceivedCharacter.name}</span>
+          <Badge variant="secondary" className="text-xs px-1.5 py-0">
+            <CharacterIcon iconName={character.icon} className="text-foreground" size={10} />
+            <span className="ml-1">Drunk</span>
+          </Badge>
+        </div>
+      ) : (
+        <span className="text-sm font-medium text-foreground whitespace-nowrap">{character.name}</span>
+      )}
+      
+      {/* Drunk perceived character selector */}
+      {isDrunk && onPerceivedCharacterChange && (
+        <Select
+          value={perceivedCharacterId || ""}
+          onValueChange={(value) => {
+            onPerceivedCharacterChange(value || undefined);
+          }}
+        >
+          <SelectTrigger
+            className="h-6 text-xs px-2 py-1 border border-border hover:bg-muted"
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            {perceivedCharacter ? (
+              <div className="flex items-center gap-1.5">
+                <CharacterIcon iconName={perceivedCharacter.icon} className="text-foreground" size={12} />
+                <span>{perceivedCharacter.name}</span>
+              </div>
+            ) : (
+              <span className="text-muted-foreground">Select Townsfolk...</span>
+            )}
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">
+              <span className="text-muted-foreground">None</span>
+            </SelectItem>
+            {availableTownsfolk.map((townsfolk) => (
+              <SelectItem key={townsfolk.id} value={townsfolk.id}>
+                <div className="flex items-center gap-2">
+                  <CharacterIcon iconName={townsfolk.icon} className="text-foreground" size={14} />
+                  <span>{townsfolk.name}</span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
       {assignedHelperTokens.length > 0 && (
         <div className="flex flex-wrap gap-1 justify-center mt-1">
           {assignedHelperTokens.map((ht) => (

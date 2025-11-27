@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useGameStore } from "../lib/store";
 import { joinLobby } from "../lib/api";
@@ -18,16 +18,13 @@ function JoinPage() {
   const navigate = useNavigate();
   
   const assignedCharacter = useGameStore((s) => s.assignedCharacter);
+  const lobbyCode = useGameStore((s) => s.lobbyCode);
   const error = useGameStore((s) => s.error);
   const clearError = useGameStore((s) => s.clearError);
   const setError = useGameStore((s) => s.setError);
+  const clearSession = useGameStore((s) => s.clearSession);
 
-  // Navigate to player page if we have a character
-  useEffect(() => {
-    if (assignedCharacter) {
-      navigate({ to: "/player/$lobbyId", params: { lobbyId: "current" } });
-    }
-  }, [assignedCharacter, navigate]);
+  const hasExistingSession = assignedCharacter !== null;
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,8 +35,8 @@ function JoinPage() {
     
     try {
       await joinLobby(code.toUpperCase());
-      // Navigate will happen via redirect above if character was assigned
-      setIsJoining(false);
+      // After joining, navigate to the player page
+      navigate({ to: "/player/$lobbyId", params: { lobbyId: code.toUpperCase() } });
     } catch (err) {
       setError({
         code: "JOIN_ERROR",
@@ -51,6 +48,15 @@ function JoinPage() {
 
   const canJoin = code.trim().length === 4 && !isJoining;
 
+  const handleResume = () => {
+    navigate({ to: "/player/$lobbyId", params: { lobbyId: "current" } });
+  };
+
+  const handleClearSession = () => {
+    clearSession();
+    clearError();
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center p-8 bg-gradient-to-br from-[#1a1a2e] via-[#0a0a0a] to-[#0a0a0a]">
       <div className="w-full max-w-md flex flex-col gap-8">
@@ -60,6 +66,26 @@ function JoinPage() {
           </h1>
           <p className="text-muted-foreground text-sm">Enter the game code to join</p>
         </header>
+
+        {/* Resume existing game banner */}
+        {hasExistingSession && (
+          <Card className="border-[#c9a227]/50 bg-[#c9a227]/5">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Existing Game Found</CardTitle>
+              <CardDescription>
+                You have an active game session{lobbyCode ? ` (${lobbyCode})` : ""} as <span className="font-medium text-foreground">{assignedCharacter?.name}</span>
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex gap-3">
+              <Button onClick={handleResume} className="flex-1">
+                Resume Game
+              </Button>
+              <Button variant="outline" onClick={handleClearSession} className="flex-1">
+                Leave Game
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>

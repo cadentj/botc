@@ -21,6 +21,7 @@ interface GameStore {
   setAssignedCharacter: (character: Character | null) => void;
   setError: (error: { code: string; message: string } | null) => void;
   clearError: () => void;
+  clearSession: () => void;
 }
 
 export const useGameStore = create<GameStore>()(
@@ -38,6 +39,7 @@ export const useGameStore = create<GameStore>()(
       setAssignedCharacter: (character: Character | null) => set({ assignedCharacter: character }),
       setError: (error: { code: string; message: string } | null) => set({ error }),
       clearError: () => set({ error: null }),
+      clearSession: () => set({ lobbyCode: null, gameState: null, assignedCharacter: null, error: null }),
     }),
     {
       name: "botc-store",
