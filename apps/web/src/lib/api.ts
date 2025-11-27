@@ -3,11 +3,7 @@ import { useGameStore } from "./store";
 import type { GameState, ScriptId } from "@org/types";
 
 function getApiUrl(): string {
-  if (import.meta.env.DEV) {
-    return "http://localhost:3000";
-  }
-  // Production: use the server subdomain
-  return `https://${window.location.hostname.replace("web", "server")}`;
+  return import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 }
 
 // Fetch lobby state (for storyteller)
