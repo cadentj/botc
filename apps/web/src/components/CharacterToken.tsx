@@ -1,8 +1,9 @@
+import { useState } from "react";
 import type { Character, HelperToken } from "@org/types";
 import { SCRIPTS } from "@org/types";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { useDraggable } from "@dnd-kit/core";
+import type { NodeProps } from "@xyflow/react";
 import {
   Plus, X, Shirt, BookOpen, Search, ChefHat, Heart, Sparkles, Skull, Shield,
   Bird, Flower2, Crosshair, Swords, Crown, Wine, Beer, Ghost, Cross,
@@ -27,16 +28,14 @@ export function CharacterIcon({ iconName, className, size = 16 }: CharacterIconP
   return Icon ? <Icon className={className} size={size} /> : null;
 }
 
-interface CharacterTokenProps {
-  id: string; // unique id for dnd-kit
+// Data structure for React Flow node
+export interface CharacterTokenData extends Record<string, unknown> {
   character: Character;
-  position: { x: number; y: number };
-  selected?: boolean;
-  onClick?: () => void;
-  helperTokens?: string[]; // array of helper token IDs assigned to this token
   availableHelperTokens?: HelperToken[]; // helper tokens available for selection
-  onAddHelperToken?: (helperTokenId: string) => void;
-  onRemoveHelperToken?: (helperTokenId: string) => void;
+}
+
+interface CharacterTokenProps extends NodeProps {
+  data: CharacterTokenData;
 }
 
 const TYPE_COLORS: Record<string, string> = {
@@ -46,37 +45,25 @@ const TYPE_COLORS: Record<string, string> = {
   demon: "#ef4444",
 };
 
-export function CharacterToken({
-  id,
-  character,
-  position,
-  selected,
-  onClick,
-  helperTokens = [],
-  availableHelperTokens = [],
-  onAddHelperToken,
-  onRemoveHelperToken,
-}: CharacterTokenProps) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id,
-  });
+export function CharacterToken({ data, selected: nodeSelected }: CharacterTokenProps) {
+  const { character, availableHelperTokens = [] } = data;
+  const [helperTokens, setHelperTokens] = useState<string[]>([]);
 
   const typeColor = TYPE_COLORS[character.type] ?? "#6b7280";
-
-  // Compute final position: base position + current drag transform
-  const style = {
-    left: position.x,
-    top: position.y,
-    borderColor: typeColor,
-    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
-    cursor: isDragging ? "grabbing" : "grab",
-  };
 
   // Get helper token objects for assigned tokens
   const assignedHelperTokens = availableHelperTokens.filter((ht) => helperTokens.includes(ht.id));
   
   // Get available helper tokens that aren't already assigned
   const unassignedHelperTokens = availableHelperTokens.filter((ht) => !helperTokens.includes(ht.id));
+
+  const handleAddHelperToken = (helperTokenId: string) => {
+    setHelperTokens((prev) => prev.includes(helperTokenId) ? prev : [...prev, helperTokenId]);
+  };
+
+  const handleRemoveHelperToken = (helperTokenId: string) => {
+    setHelperTokens((prev) => prev.filter((id) => id !== helperTokenId));
+  };
 
   // Get character name for each helper token
   const getCharacterNameForHelperToken = (helperToken: HelperToken): string => {
@@ -94,23 +81,17 @@ export function CharacterToken({
 
   return (
     <div
-      ref={setNodeRef}
-      className={`absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1.5 p-4 bg-card border-2 rounded-lg select-none z-1 min-w-[160px] touch-none ${
-        isDragging ? "z-100 shadow-2xl" : ""
-      } ${selected ? "shadow-[0_0_0_3px_rgba(201,162,39,0.5)]" : ""}`}
-      style={style}
-      onClick={onClick}
-      {...listeners}
-      {...attributes}
+      className="flex flex-col size-24 items-center gap-1.5 p-4 bg-card border-2 rounded-lg select-none min-w-[160px] cursor-grab active:cursor-grabbing"
+      style={{ borderColor: typeColor }}
     >
       <div className="flex items-center gap-1.5 justify-center w-full">
         <CharacterIcon iconName={character.icon} className="text-foreground" size={20} />
-        {unassignedHelperTokens.length > 0 && onAddHelperToken && (
+        {unassignedHelperTokens.length > 0 && (
           <Select
             value=""
             onValueChange={(value) => {
               if (value) {
-                onAddHelperToken(value);
+                handleAddHelperToken(value);
               }
             }}
           >
@@ -146,18 +127,16 @@ export function CharacterToken({
             >
               <CharacterIcon iconName={getCharacterIconForHelperToken(ht)} className="text-foreground" size={12} />
               <span>{ht.name}</span>
-              {onRemoveHelperToken && (
-                <button
-                  className="h-3 w-3 rounded-full hover:bg-destructive/20 flex items-center justify-center"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemoveHelperToken(ht.id);
-                  }}
-                  onMouseDown={(e) => e.stopPropagation()}
-                >
-                  <X className="h-2.5 w-2.5" />
-                </button>
-              )}
+              <button
+                className="h-3 w-3 rounded-full hover:bg-destructive/20 flex items-center justify-center"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRemoveHelperToken(ht.id);
+                }}
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                <X className="h-2.5 w-2.5" />
+              </button>
             </Badge>
           ))}
         </div>

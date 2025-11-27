@@ -6,7 +6,7 @@ import { CharacterIcon } from "./CharacterToken";
 interface NightOrderSheetProps {
   characterIds: string[];
   script: ScriptId;
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 export function NightOrderSheet({
@@ -19,9 +19,11 @@ export function NightOrderSheet({
   if (!scriptData) {
     return (
       <div className="flex-1 p-6 bg-background overflow-y-auto">
-        <Button variant="outline" onClick={onClose} className="mb-6">
-          ← Back to Grimoire
-        </Button>
+        {onClose && (
+          <Button variant="outline" onClick={onClose} className="mb-6">
+            ← Back to Grimoire
+          </Button>
+        )}
         <p>Unknown script</p>
       </div>
     );
@@ -49,11 +51,13 @@ export function NightOrderSheet({
 
   return (
     <div className="flex-1 p-6 bg-background overflow-y-auto">
-      <Button variant="outline" onClick={onClose} className="mb-6">
-        ← Back to Grimoire
-      </Button>
+      {onClose && (
+        <Button variant="outline" onClick={onClose} className="mb-6">
+          ← Back to Grimoire
+        </Button>
+      )}
 
-      <div className="flex gap-12 max-w-5xl mx-auto">
+      <div className="flex flex-col gap-8">
         <section className="flex-1">
           <h2 className="text-xl mb-4 text-[#c9a227]">First Night</h2>
           {firstNight.length === 0 ? (
