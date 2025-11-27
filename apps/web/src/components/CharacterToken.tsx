@@ -45,7 +45,7 @@ const TYPE_COLORS: Record<string, string> = {
   demon: "#ef4444",
 };
 
-export function CharacterToken({ data, selected: nodeSelected }: CharacterTokenProps) {
+export function CharacterToken({ data }: CharacterTokenProps) {
   const { character, availableHelperTokens = [] } = data;
   const [helperTokens, setHelperTokens] = useState<string[]>([]);
 
