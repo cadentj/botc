@@ -1,4 +1,4 @@
-import type { Character, CharacterType } from "$lib/types/characters";
+import type { Character, CharacterType, HelperToken } from "$lib/types/characters";
 import {
     Shirt,
     BookOpen,
@@ -64,4 +64,42 @@ export const CHARACTERS_BY_TYPE: Record<CharacterType, Character[]> = {
     minions: MINIONS,
     demons: DEMONS,
 };
+
+export const HELPER_TOKENS: HelperToken[] = [
+    // Washerwoman tokens
+    { id: "washerwoman-townsfolk", name: "Townsfolk", forCharacter: "Washerwoman" },
+    { id: "washerwoman-wrong", name: "Wrong", forCharacter: "Washerwoman" },
+    
+    // Librarian tokens
+    { id: "librarian-outsider", name: "Outsider", forCharacter: "Librarian" },
+    { id: "librarian-wrong", name: "Wrong", forCharacter: "Librarian" },
+    
+    // Investigator tokens
+    { id: "investigator-minion", name: "Minion", forCharacter: "Investigator" },
+    { id: "investigator-wrong", name: "Wrong", forCharacter: "Investigator" },
+    
+    // Chef tokens
+    { id: "chef-seen", name: "Seen", forCharacter: "Chef" },
+    
+    // Empath tokens
+    { id: "empath-seen", name: "Seen", forCharacter: "Empath" },
+    
+    // Fortune Teller tokens
+    { id: "fortune-teller-red-herring", name: "Red herring", forCharacter: "Fortune Teller" },
+    
+    // Monk tokens
+    { id: "monk-protected", name: "Protected", forCharacter: "Monk" },
+    
+    // Poisoner tokens
+    { id: "poisoner-poisoned", name: "Poisoned", forCharacter: "Poisoner" },
+    
+    // Spy tokens
+    { id: "spy-seen", name: "Seen", forCharacter: "Spy" },
+    
+    // Scarlet Woman tokens
+    { id: "scarlet-woman-is-demon", name: "Is the Demon", forCharacter: "Scarlet Woman" },
+    
+    // Imp tokens
+    { id: "imp-dead", name: "Dead", forCharacter: "Imp" },
+];
 

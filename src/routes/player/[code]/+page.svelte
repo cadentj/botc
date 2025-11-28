@@ -1,17 +1,11 @@
 <script lang="ts">
-	import { page } from '$app/stores';
 	import type { ActionData } from './$types';
 
 	let { form }: { form: ActionData } = $props();
 
-	const lobbyCode = $derived($page.params.code || '');
 	const assignedRole = $derived(form?.role);
 	const error = $derived(form?.error);
 </script>
-
-<svelte:head>
-	<title>Your Role - {lobbyCode}</title>
-</svelte:head>
 
 <div class="flex justify-center items-center min-h-screen p-4">
 	<div class="card bg-base-200 w-full max-w-md">

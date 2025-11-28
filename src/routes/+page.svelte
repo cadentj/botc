@@ -2,15 +2,10 @@
     import PlayerJoinForm from "$lib/components/player-join-form.svelte";
     import { page } from "$app/stores";
 
-    const prefillCode = $derived($page.url.searchParams.get("code")?.toUpperCase() ?? "");
+    const prefillCode = $page.url.searchParams.get("code")?.toUpperCase() ?? "";
 
     let name = $state("");
-    let lobbyCode = $state("");
-
-    // Sync with prefillCode when it changes
-    $effect(() => {
-        if (prefillCode) lobbyCode = prefillCode;
-    });
+    let lobbyCode = $state(prefillCode);
 
     const formAction = $derived(lobbyCode.length === 4 ? `/player/${lobbyCode.toUpperCase()}` : "");
 </script>

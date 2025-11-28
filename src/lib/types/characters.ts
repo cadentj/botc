@@ -12,3 +12,9 @@ export interface Character {
     firstNightOrder?: number; // Order to wake on first night (undefined = doesn't wake)
     otherNightOrder?: number; // Order to wake on other nights (undefined = doesn't wake)
 }
+
+export interface HelperToken {
+    id: string;
+    name: string;
+    forCharacter: string; // character name this token belongs to
+}
