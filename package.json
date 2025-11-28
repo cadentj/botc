@@ -1,15 +1,31 @@
 {
+	"name": "@botc/web",
 	"private": true,
+	"version": "0.0.1",
+	"type": "module",
 	"scripts": {
-	  "build": "turbo run build",
-	  "dev": "turbo run dev",
-	  "lint": "turbo run lint",
-	  "db:push": "cd apps/server && pnpm db:push",
-	  "db:generate": "cd apps/server && pnpm db:generate"
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync || echo ''",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
 	},
 	"devDependencies": {
-	  "turbo": "latest"
+		"@sveltejs/adapter-auto": "^7.0.0",
+		"@sveltejs/adapter-vercel": "^6.2.0",
+		"@sveltejs/kit": "^2.48.5",
+		"@sveltejs/vite-plugin-svelte": "^6.2.1",
+		"@tailwindcss/vite": "^4.1.17",
+		"svelte": "^5.43.8",
+		"svelte-check": "^4.3.4",
+		"tailwindcss": "^4.1.17",
+		"typescript": "^5.9.3",
+		"vite": "^7.2.2"
 	},
-	"packageManager": "pnpm@10.19.0"
-  }
-  
+	"dependencies": {
+		"@lucide/svelte": "^0.555.0",
+		"@xyflow/svelte": "^1.4.2",
+		"daisyui": "^5.5.5"
+	}
+}

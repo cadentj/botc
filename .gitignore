@@ -1,35 +1,23 @@
-# Dependencies
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+node_modules
 
-# Environment variables
-.env
-.env.local
-.env.*.local
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
 
-# OS files
+# OS
 .DS_Store
 Thumbs.db
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
 
-# Logs
-logs/
-*.log
-
-# Build outputs
-dist/
-build/
-
-# Turbo 
-.turbo
-
-# SQLite DB
-.db
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
