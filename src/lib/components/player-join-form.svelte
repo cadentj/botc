@@ -2,15 +2,14 @@
     let {
         name = $bindable(),
         lobbyCode = $bindable(),
-        handleSubmit,
-        isJoining = false,
-    }: { name: string; lobbyCode: string; handleSubmit: (e: Event) => void; isJoining?: boolean } =
-        $props();
+        action = "",
+        codeProvided = false,
+    }: { name: string; lobbyCode: string; action?: string; codeProvided?: boolean } = $props();
 
     const isCodeValid = $derived(lobbyCode.length === 4);
 </script>
 
-<form onsubmit={handleSubmit}>
+<form method="POST" {action}>
     <fieldset
         class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4"
     >
@@ -20,29 +19,30 @@
         <input
             id="name-input"
             type="text"
+            name="playerName"
             class="input"
             placeholder="Name"
             bind:value={name}
         />
 
-        <label class="label" for="lobby-code-input">Lobby Code</label>
-        <input
-            id="lobby-code-input"
-            type="text"
-            class="input"
-            placeholder="Lobby Code"
-            bind:value={lobbyCode}
-        />
+        {#if !codeProvided}
+            <label class="label" for="lobby-code-input">Lobby Code</label>
+            <input
+                id="lobby-code-input"
+                type="text"
+                class="input"
+                placeholder="Lobby Code"
+                bind:value={lobbyCode}
+            />
+        {/if}
 
-        <button class="btn btn-neutral mt-4" disabled={!name || !isCodeValid || isJoining}>
-            {#if isJoining}
-                <span class="loading loading-spinner loading-sm"></span>
-                Joining...
-            {:else}
-                Join
-            {/if}
+        <button class="btn btn-neutral mt-4" disabled={!name || !isCodeValid}>
+            Join
         </button>
-        <div class="divider my-1.5">Or</div>
-        <a href="/storyteller" class="btn btn-neutral">Create game as a storyteller</a>
+
+        {#if !codeProvided}
+            <div class="divider my-1.5">Or</div>
+            <a href="/storyteller" class="btn btn-neutral">Create game as a storyteller</a>
+        {/if}
     </fieldset>
 </form>

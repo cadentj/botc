@@ -92,18 +92,31 @@
                         >
                             <char.icon size={16} class="min-w-5 h-5" />
                             <div class="flex flex-1 flex-col">
-                                <div class="flex flex-row gap-2 justify-between items-center">
-                                    <h3 class="font-medium text-sm">{char.name}</h3>
+                                <div
+                                    class="flex flex-row gap-2 justify-between items-center"
+                                >
+                                    <h3 class="font-medium text-sm">
+                                        {char.name}
+                                    </h3>
 
                                     <!-- Helpful badge to indicate how often the character acts -->
-                                    {#if (char.firstNightOrder && !char.otherNightOrder)}
-                                        <span class="badge badge-xs badge-soft badge-primary">First Night</span>
+                                    {#if char.firstNightOrder && !char.otherNightOrder}
+                                        <span
+                                            class="badge badge-xs badge-soft badge-primary"
+                                            >First Night</span
+                                        >
                                     {/if}
-                                    {#if (char.otherNightOrder)}
-                                        <span class="badge badge-xs badge-soft badge-secondary">Every Night</span>
+                                    {#if char.otherNightOrder}
+                                        <span
+                                            class="badge badge-xs badge-soft badge-secondary"
+                                            >Every Night</span
+                                        >
                                     {/if}
-                                    {#if (!char.firstNightOrder && !char.otherNightOrder)}
-                                        <span class="badge badge-xs badge-soft badge-accent">One Time</span>
+                                    {#if !char.firstNightOrder && !char.otherNightOrder}
+                                        <span
+                                            class="badge badge-xs badge-soft badge-accent"
+                                            >One Time</span
+                                        >
                                     {/if}
                                 </div>
                                 <p
@@ -120,56 +133,64 @@
     </div>
 
     <footer
-        class="fixed bottom-0 left-0 right-0 py-3 px-4 bg-base-100 border-t border-base-300 flex items-center justify-center gap-4"
+        class="fixed bottom-0 left-0 right-0 py-3 bg-base-100 border-t border-base-300 flex items-center justify-center"
     >
-        <button
-            type="button"
-            class="btn btn-primary"
-            disabled={!isValid}
-            onclick={handleConfirm}
-        >
-            {#if isValid}
-                Confirm Selection
-            {:else}
-                Complete your selection
-            {/if}
-        </button>
+        
 
-        <button class="btn btn-square" onclick={() => modal.showModal()}>
-            <Info size={16} />
-        </button>
+        <div class="flex flex-row gap-4 px-4 max-w-5xl mx-auto flex-1 justify-between">
 
-        <div
-            class="bg-base-300 p-3 rounded grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs text-base-content/70"
-        >
-            <span
-                class={currentCounts.townsfolk === targetComposition.townsfolk
-                    ? "text-primary"
-                    : ""}
+            <div
+                class="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs text-base-content/70"
             >
-                Townsfolk: {currentCounts.townsfolk}/{targetComposition.townsfolk}
-            </span>
-            <span
-                class={currentCounts.outsiders === targetComposition.outsiders
-                    ? "text-accent"
-                    : ""}
-            >
-                Outsiders: {currentCounts.outsiders}/{targetComposition.outsiders}
-            </span>
-            <span
-                class={currentCounts.minions === targetComposition.minions
-                    ? "text-warning"
-                    : ""}
-            >
-                Minions: {currentCounts.minions}/{targetComposition.minions}
-            </span>
-            <span
-                class={currentCounts.demons === targetComposition.demons
-                    ? "text-error"
-                    : ""}
-            >
-                Demons: {currentCounts.demons}/{targetComposition.demons}
-            </span>
+                <span
+                    class={currentCounts.townsfolk === targetComposition.townsfolk
+                        ? "text-primary"
+                        : ""}
+                >
+                    Townsfolk: {currentCounts.townsfolk}/{targetComposition.townsfolk}
+                </span>
+                <span
+                    class={currentCounts.outsiders === targetComposition.outsiders
+                        ? "text-accent"
+                        : ""}
+                >
+                    Outsiders: {currentCounts.outsiders}/{targetComposition.outsiders}
+                </span>
+                <span
+                    class={currentCounts.minions === targetComposition.minions
+                        ? "text-warning"
+                        : ""}
+                >
+                    Minions: {currentCounts.minions}/{targetComposition.minions}
+                </span>
+                <span
+                    class={currentCounts.demons === targetComposition.demons
+                        ? "text-error"
+                        : ""}
+                >
+                    Demons: {currentCounts.demons}/{targetComposition.demons}
+                </span>
+            </div>
+            <div class="flex flex-row gap-4">
+                <button class="btn btn-square" onclick={() => modal.showModal()}>
+                    <Info size={16} />
+                </button>
+    
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    disabled={!isValid}
+                    onclick={handleConfirm}
+                >
+                    {#if isValid}
+                        Confirm Selection
+                    {:else}
+                        Complete your selection
+                    {/if}
+                </button>
+    
+    
+            </div>
         </div>
     </footer>
 
