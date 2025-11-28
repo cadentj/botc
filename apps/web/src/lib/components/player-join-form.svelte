@@ -19,7 +19,7 @@
             type="text"
             class="input"
             placeholder="Name"
-            oninput={(e) => (name = e.currentTarget.value)}
+            bind:value={name}
         />
 
         <label class="label" for="lobby-code-input">Lobby Code</label>
@@ -28,11 +28,11 @@
             type="text"
             class="input"
             placeholder="Lobby Code"
-            oninput={(e) => (lobbyCode = e.currentTarget.value)}
+            bind:value={lobbyCode}
         />
 
         <button class="btn btn-neutral mt-4">Join</button>
         <div class="divider my-1.5">Or</div>
-        <button class="btn btn-neutral">Create game as a storyteller</button>
+        <a href="/storyteller" class="btn btn-neutral">Create game as a storyteller</a>
     </fieldset>
 </form>
