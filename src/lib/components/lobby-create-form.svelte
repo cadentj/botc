@@ -29,5 +29,7 @@
         </select>
 
         <button class="btn btn-neutral mt-4">Create</button>
+        <div class="divider my-1.5">Or</div>
+        <a href="/" class="btn btn-neutral">Go back</a>
     </fieldset>
 </form>

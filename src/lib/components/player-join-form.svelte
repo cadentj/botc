@@ -3,8 +3,11 @@
         name = $bindable(),
         lobbyCode = $bindable(),
         handleSubmit,
-    }: { name: string; lobbyCode: string; handleSubmit: (e: Event) => void } =
+        isJoining = false,
+    }: { name: string; lobbyCode: string; handleSubmit: (e: Event) => void; isJoining?: boolean } =
         $props();
+
+    const isCodeValid = $derived(lobbyCode.length === 4);
 </script>
 
 <form onsubmit={handleSubmit}>
@@ -31,7 +34,14 @@
             bind:value={lobbyCode}
         />
 
-        <button class="btn btn-neutral mt-4">Join</button>
+        <button class="btn btn-neutral mt-4" disabled={!name || !isCodeValid || isJoining}>
+            {#if isJoining}
+                <span class="loading loading-spinner loading-sm"></span>
+                Joining...
+            {:else}
+                Join
+            {/if}
+        </button>
         <div class="divider my-1.5">Or</div>
         <a href="/storyteller" class="btn btn-neutral">Create game as a storyteller</a>
     </fieldset>

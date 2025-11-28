@@ -1,6 +1,8 @@
 <script lang="ts">
     import LobbyCreateForm from "$lib/components/lobby-create-form.svelte";
     import CharacterSelect from "$lib/components/character-select.svelte";
+    import { setSelectedCharacters } from "$lib/stores/lobby.svelte";
+    import { goto } from "$app/navigation";
 
     let playerCount = $state(5);
 
@@ -12,8 +14,37 @@
         progress = "select-characters";
     }
 
-    function onSelect(characterIds: string[]) {
-        console.log(characterIds);
+    async function onSelect(characterIds: string[]) {
+        // Store selected characters
+        setSelectedCharacters(characterIds);
+
+        // Create characterToPlayer mapping (initially empty strings)
+        const characterToPlayer: Record<string, string> = {};
+        for (const characterId of characterIds) {
+            characterToPlayer[characterId] = "";
+        }
+
+        // Create lobby
+        const response = await fetch("/api/lobby", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                playerCount,
+                characterToPlayer,
+            }),
+        });
+
+        if (!response.ok) {
+            console.error("Failed to create lobby");
+            return;
+        }
+
+        const { code } = await response.json();
+        
+        // Navigate to grimoire with lobby code
+        goto(`/storyteller/grimoire?code=${code}`);
     }
 </script>
 

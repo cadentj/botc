@@ -1,57 +1,6 @@
 <script lang="ts">
 	import type { Character } from '$lib/types/characters';
-	import {
-		Skull,
-		HeartPulse,
-		Shirt,
-		BookOpen,
-		Search,
-		ChefHat,
-		Heart,
-		Sparkles,
-		Shield,
-		Bird,
-		Flower2,
-		Crosshair,
-		Swords,
-		Crown,
-		Wine,
-		Beer,
-		Ghost,
-		Cross,
-		FlaskConical,
-		Eye,
-		Castle,
-		HeartCrack,
-		Flame,
-		HelpCircle,
-		X,
-	} from '@lucide/svelte';
-
-	const ICONS: Record<string, typeof Skull> = {
-		Skull,
-		Shirt,
-		BookOpen,
-		Search,
-		ChefHat,
-		Heart,
-		Sparkles,
-		Shield,
-		Bird,
-		Flower2,
-		Crosshair,
-		Swords,
-		Crown,
-		Wine,
-		Beer,
-		Ghost,
-		Cross,
-		FlaskConical,
-		Eye,
-		Castle,
-		HeartCrack,
-		Flame,
-	};
+	import { Skull, HeartPulse, X } from '@lucide/svelte';
 
 	const TYPE_COLORS: Record<string, string> = {
 		townsfolk: '#3b82f6',
@@ -64,6 +13,7 @@
 		character: Character;
 		isDead: boolean;
 		onToggleDead: () => void;
+		playerName?: string;
 	}
 
 	const REMINDERS = ['Poisoned', 'Drunk', 'Dead', 'Protected', 'Nominated'] as const;
@@ -74,7 +24,7 @@
 	let reminders = $state<string[]>([]);
 
 	const typeColor = $derived(TYPE_COLORS[data.character.type] ?? '#6b7280');
-	const IconComponent = $derived(ICONS[data.character.icon] ?? HelpCircle);
+	const IconComponent = $derived(data.character.icon);
 
 	function handleToggleDead(e: MouseEvent) {
 		e.stopPropagation();
@@ -113,6 +63,9 @@
 	</div>
 
 	<span>{data.character.name}</span>
+	{#if data.playerName}
+		<span class="text-xs text-base-content/70 mt-1">{data.playerName}</span>
+	{/if}
 
 	<!-- Badges stay in flow, will overflow below circle -->
 	<div class="flex items-center flex-wrap pt-1 gap-1 justify-center max-w-36">
