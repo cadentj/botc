@@ -64,13 +64,6 @@
             onSelect([...selectedCharacters]);
         }
     }
-
-    const typeBorderColors: Record<CharacterType, string> = {
-        townsfolk: "border-l-info",
-        outsiders: "border-l-accent",
-        minions: "border-l-warning",
-        demons: "border-l-error",
-    };
 </script>
 
 <div class="max-w-5xl mx-auto flex flex-col gap-6 p-4 pb-24">
@@ -98,8 +91,21 @@
                             onclick={() => toggleCharacter(char.name)}
                         >
                             <char.icon size={16} class="min-w-5 h-5" />
-                            <div class="flex flex-col">
-                                <h3 class="font-medium text-sm">{char.name}</h3>
+                            <div class="flex flex-1 flex-col">
+                                <div class="flex flex-row gap-2 justify-between items-center">
+                                    <h3 class="font-medium text-sm">{char.name}</h3>
+
+                                    <!-- Helpful badge to indicate how often the character acts -->
+                                    {#if (char.firstNightOrder && !char.otherNightOrder)}
+                                        <span class="badge badge-xs badge-soft badge-primary">First Night</span>
+                                    {/if}
+                                    {#if (char.otherNightOrder)}
+                                        <span class="badge badge-xs badge-soft badge-secondary">Every Night</span>
+                                    {/if}
+                                    {#if (!char.firstNightOrder && !char.otherNightOrder)}
+                                        <span class="badge badge-xs badge-soft badge-accent">One Time</span>
+                                    {/if}
+                                </div>
                                 <p
                                     class="text-xs text-base-content/60 mt-1 line-clamp-3"
                                 >
