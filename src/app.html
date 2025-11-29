@@ -2,8 +2,16 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 		%sveltekit.head%
+		<style>
+			body {
+				padding-top: env(safe-area-inset-top);
+				padding-right: env(safe-area-inset-right);
+				padding-bottom: env(safe-area-inset-bottom);
+				padding-left: env(safe-area-inset-left);
+			}
+		</style>
 	</head>
 	<body data-sveltekit-preload-data="hover">
 		<div style="display: contents">%sveltekit.body%</div>

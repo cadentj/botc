@@ -188,7 +188,7 @@
 
 <style>
 	:global(.svelte-flow) {
-		--xy-background-color: transparent;
+		--xy-background-color: #000000;
 	}
 </style>
 
