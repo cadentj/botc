@@ -91,10 +91,10 @@
 				{/if}
 			</button>
 		</div>
-		<div class="tabs tabs-box tabs-xs md:hidden">
+		<div class="tabs tabs-box tabs-xs md:hidden shrink-0 w-fit">
 			<input type="radio" name="my_tabs_1" class="tab" aria-label="Book" value="book" bind:group={activeTab} />
 			<input type="radio" name="my_tabs_1" class="tab" aria-label="Roles" value="roles" bind:group={activeTab} />
-		  </div>
+		</div>
 	</header>
 
 	<!-- Main content -->
