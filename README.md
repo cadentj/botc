@@ -14,4 +14,12 @@ Features:
   - Player names instantly associated with tokens in the grimoire so you don't have to collect tokens.
  
 To make the in person experience more engaging, I purposely omit actions like voting from the game.
-  
+
+Roadmap: 
+- Support for Sects and Violets, Bad Moon Rising, and more custom scripts.
+- Create a new game without needing to redistribute a code.
+- Townsquare on player devices for more visiblity on what players are dead or not.
+
+## Credit
+
+Thank you [Steven Medway](https://x.com/Steve_Medway/) and [The Pandemonium Institute](https://bloodontheclocktower.com/) for such an amazing game!
