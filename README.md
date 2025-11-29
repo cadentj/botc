@@ -1,6 +1,6 @@
 # Blood on the Clocktower
 
-> Note: Oops, in-memory storage won't work on Vercel edge functions. Will need to re-deploy a backend to fly or smtn before wider use.
+> Note: Oops, in-memory storage won't work on Vercel edge functions. Will need to re-deploy a backend to fly or smtn before wider use. For now, you'll need to collect player name --> roles manually.
 
 A simple version of BOTC for in person gatherings. For a fully featured online version, check out [clocktower.online](https://clocktower.online/).
 
