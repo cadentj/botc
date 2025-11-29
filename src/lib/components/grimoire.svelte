@@ -36,6 +36,7 @@
     let pollStartTime = $state<number | null>(null);
     let remainingSeconds = $state(5 * 60);
     let isPolling = $state(true);
+    let lobbyNotFound = $state(false);
     const POLL_DURATION = 5 * 60 * 1000; // 5 minutes
     const POLL_INTERVAL = 10 * 1000; // 10 seconds
 
@@ -98,6 +99,11 @@
     async function pollLobby() {
         try {
             const response = await fetch(`/api/lobby/${lobbyCode}`);
+            if (response.status === 404) {
+                lobbyNotFound = true;
+                stopPolling();
+                return;
+            }
             if (!response.ok) {
                 console.error("Failed to fetch lobby");
                 return;
@@ -178,18 +184,36 @@
     });
 </script>
 
-<div class="h-full w-full relative">
-    <SvelteFlow
-        bind:nodes
-        bind:edges
-        {nodeTypes}
-        fitView
-        fitViewOptions={{ padding: 0.3 }}
-        proOptions={{ hideAttribution: true }}
-    >
-        <Background variant={BackgroundVariant.Dots} gap={20} />
-    </SvelteFlow>
-</div>
+{#if lobbyNotFound}
+    <div class="h-full w-full flex items-center justify-center">
+        <div class="card bg-base-200 shadow-lg max-w-xs border border-base-300">
+            <div class="card-body text-center">
+                <h2 class="card-title justify-center">Game Not Found</h2>
+                <p class="text-base-content/70">
+                    The game code <span class="font-mono text-warning">{lobbyCode}</span> doesn't exist or has expired.
+                </p>
+                <div class="card-actions justify-center mt-4">
+                    <a href="/storyteller" class="btn btn-primary">
+                        Return to Lobby
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{:else}
+    <div class="h-full w-full relative">
+        <SvelteFlow
+            bind:nodes
+            bind:edges
+            {nodeTypes}
+            fitView
+            fitViewOptions={{ padding: 0.3 }}
+            proOptions={{ hideAttribution: true }}
+        >
+            <Background variant={BackgroundVariant.Dots} gap={20} />
+        </SvelteFlow>
+    </div>
+{/if}
 
 <style>
     :global(.svelte-flow) {
