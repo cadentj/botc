@@ -16,6 +16,7 @@ Features:
 To make the in person experience more engaging, I purposely omit actions like voting from the game.
 
 Roadmap: 
+- Polling --> WS so I don't hit Vercel edge request limits.
 - Support for Sects and Violets, Bad Moon Rising, and more custom scripts.
 - Create a new game without needing to redistribute a code.
 - Townsquare on player devices for more visiblity on what players are dead or not.
