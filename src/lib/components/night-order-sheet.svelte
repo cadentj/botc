@@ -2,9 +2,13 @@
 	import type { Character } from '$lib/types/characters';
 	import { CHARACTERS_BY_TYPE } from '$lib/botc-data/trouble-brewing.svelte';
 
-	let { characters }: { characters: Character[] } = $props();
-
-	let showAllRoles = $state(false);
+	let { 
+		characters,
+		showAllRoles = false
+	}: { 
+		characters: Character[];
+		showAllRoles?: boolean;
+	} = $props();
 
 	const typeColors: Record<string, string> = {
 		townsfolk: 'text-blue-500',
@@ -23,9 +27,6 @@
 
 	// Characters to display based on toggle
 	const displayCharacters = $derived(showAllRoles ? allCharacters : characters);
-
-	// Set of character names in the current game (for highlighting)
-	const inGameNames = $derived(new Set(characters.map((c) => c.name)));
 
 	// Sort characters by firstNightOrder
 	const firstNight = $derived(
@@ -47,15 +48,11 @@
 			(c) => c.firstNightOrder === undefined && c.otherNightOrder === undefined
 		)
 	);
-
-	function isInGame(char: Character): boolean {
-		return inGameNames.has(char.name);
-	}
 </script>
 
-<div class="flex flex-col h-full bg-base-100">
+<div class="flex flex-col bg-base-100">
 	<!-- Scrollable content -->
-	<div class="flex-1 p-6 overflow-y-auto">
+	<div class="flex-1 p-6 overflow-y-auto min-h-0">
 		<div class="flex flex-col gap-8">
 			<section class="flex-1">
 				<div class="divider">First Night</div>
@@ -65,8 +62,7 @@
 					<ol class="list-none p-0 m-0 flex flex-col gap-2">
 						{#each firstNight as char}
 							{@const CharIcon = char.icon}
-							{@const inGame = isInGame(char)}
-							<li class="card flex flex-row gap-3 bg-base-200 p-3" class:opacity-40={showAllRoles && !inGame}>
+							<li class="card flex flex-row gap-3 bg-base-200 p-3">
 								<CharIcon size={16} class="min-w-5 h-5 {typeColors[char.type] || ''}" />
 								<div class="flex flex-1 flex-col">
 									<h3 class="font-medium text-sm">{char.name}</h3>
@@ -86,8 +82,7 @@
 					<ol class="list-none p-0 m-0 flex flex-col gap-2">
 						{#each otherNights as char}
 							{@const CharIcon = char.icon}
-							{@const inGame = isInGame(char)}
-							<li class="card flex flex-row gap-3 bg-base-200 p-3" class:opacity-40={showAllRoles && !inGame}>
+							<li class="card flex flex-row gap-3 bg-base-200 p-3">
 								<CharIcon size={16} class="min-w-5 h-5 {typeColors[char.type] || ''}" />
 								<div class="flex flex-1 flex-col">
 									<h3 class="font-medium text-sm">{char.name}</h3>
@@ -105,8 +100,7 @@
 					<ul class="list-none p-0 m-0 flex flex-col gap-2">
 						{#each noNightAction as char}
 							{@const CharIcon = char.icon}
-							{@const inGame = isInGame(char)}
-							<li class="card flex flex-row gap-3 bg-base-200 p-3" class:opacity-40={showAllRoles && !inGame}>
+							<li class="card flex flex-row gap-3 bg-base-200 p-3">
 								<CharIcon size={16} class="min-w-5 h-5 {typeColors[char.type] || ''}" />
 								<div class="flex flex-1 flex-col">
 									<h3 class="font-medium text-sm">{char.name}</h3>
@@ -118,14 +112,6 @@
 				</section>
 			{/if}
 		</div>
-	</div>
-
-	<!-- Toggle for showing all roles - fixed footer -->
-	<div class="shrink-0 p-3 border-t border-base-300 flex justify-end">
-		<label class="flex items-center gap-2 cursor-pointer">
-			<input type="checkbox" class="toggle toggle-sm" bind:checked={showAllRoles} />
-			<span class="text-sm">Show all</span>
-		</label>
 	</div>
 </div>
 
