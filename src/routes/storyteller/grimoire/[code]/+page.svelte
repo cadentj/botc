@@ -91,9 +91,9 @@
 				{/if}
 			</button>
 		</div>
-		<div class="tabs tabs-box tabs-xs md:hidden shrink-0 w-fit">
-			<input type="radio" name="my_tabs_1" class="tab" aria-label="Book" value="book" bind:group={activeTab} />
-			<input type="radio" name="my_tabs_1" class="tab" aria-label="Roles" value="roles" bind:group={activeTab} />
+		<div role="tablist" class="tabs tabs-box tabs-xs md:hidden">
+			<button role="tab" class="tab" class:tab-active={activeTab === "book"} onclick={() => activeTab = "book"}>Book</button>
+			<button role="tab" class="tab" class:tab-active={activeTab === "roles"} onclick={() => activeTab = "roles"}>Roles</button>
 		</div>
 	</header>
 
