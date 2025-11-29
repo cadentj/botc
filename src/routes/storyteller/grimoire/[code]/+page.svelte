@@ -73,7 +73,7 @@
 	<header class="flex justify-between items-center px-6 py-3 bg-base-100 border-b border-base-300 shrink-0">
 		<div class="flex items-center gap-2">
 			<span class="text-sm text-base-content/70">Game Code:</span>
-			<span class="font-mono text-sm text-base-content/70">
+			<span class="text-sm text-warning">
 				{lobbyCode}
 			</span>
 			<button
@@ -82,9 +82,9 @@
 				title="Share join link"
 			>
 				{#if shared}
-					<Check size={14} class="text-success" />
+					<Check size={12} class="text-success" />
 				{:else}
-					<Share size={14} />
+					<Share size={12} />
 				{/if}
 			</button>
 		</div>

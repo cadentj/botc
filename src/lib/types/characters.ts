@@ -17,4 +17,5 @@ export interface HelperToken {
     id: string;
     name: string;
     forCharacter: string; // character name this token belongs to
+    alwaysAvailable?: boolean; // if true, token is always shown regardless of selected characters
 }

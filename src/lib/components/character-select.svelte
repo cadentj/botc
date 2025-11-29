@@ -66,7 +66,7 @@
     }
 </script>
 
-<div class="max-w-5xl mx-auto flex flex-col gap-6 p-4 pb-24">
+<div class="max-w-5xl mx-auto flex flex-col gap-6 p-4 pb-36 md:pb-24">
     <div class="flex flex-col gap-8">
         {#each ["townsfolk", "outsiders", "minions", "demons"] as type}
             {@const charType = type as CharacterType}
@@ -137,7 +137,7 @@
     >
         
 
-        <div class="flex flex-row gap-4 px-4 max-w-5xl mx-auto flex-1 justify-between">
+        <div class="flex flex-col md:flex-row gap-4 px-4 max-w-5xl mx-auto flex-1 justify-between">
 
             <div
                 class="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs text-base-content/70"

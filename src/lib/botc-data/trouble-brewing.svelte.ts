@@ -101,5 +101,8 @@ export const HELPER_TOKENS: HelperToken[] = [
     
     // Imp tokens
     { id: "imp-dead", name: "Dead", forCharacter: "Imp" },
+    
+    // Drunk token (always available)
+    { id: "drunk-is-the-drunk", name: "Is the Drunk", forCharacter: "Drunk", alwaysAvailable: true },
 ];
 

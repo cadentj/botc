@@ -1,15 +1,31 @@
 <script lang="ts">
+    import { goto } from "$app/navigation";
+    import { onMount } from "svelte";
+
+    const PLAYER_NAME_KEY = "botc-player-name";
+
     let {
         name = $bindable(),
         lobbyCode = $bindable(),
-        action = "",
         codeProvided = false,
-    }: { name: string; lobbyCode: string; action?: string; codeProvided?: boolean } = $props();
+    }: { name: string; lobbyCode: string; codeProvided?: boolean } = $props();
 
     const isCodeValid = $derived(lobbyCode.length === 4);
+
+    onMount(() => {
+        const storedName = localStorage.getItem(PLAYER_NAME_KEY);
+        if (storedName) {
+            name = storedName;
+        }
+    });
+
+    function handleSubmit() {
+        localStorage.setItem(PLAYER_NAME_KEY, name.trim());
+        goto(`/player/${lobbyCode.toUpperCase()}`);
+    }
 </script>
 
-<form method="POST" {action}>
+<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
     <fieldset
         class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4"
     >
