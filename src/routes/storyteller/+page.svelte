@@ -45,13 +45,13 @@
 </script>
 
 {#if progress === "select-script"}
-    <div class="flex justify-center items-center h-screen">
+    <div class="flex justify-center items-center h-dvh">
         <LobbyCreateForm bind:playerCount {handleSubmit} />
     </div>
 {:else if progress === "select-characters"}
     <CharacterSelect {playerCount} {onSelect} />
 {:else}
-    <div class="flex justify-center items-center h-screen">
+    <div class="flex justify-center items-center h-dvh">
         <p>Unknown state</p>
     </div>
 {/if}

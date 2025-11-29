@@ -45,7 +45,7 @@
     });
 </script>
 
-<div class="flex flex-col items-center min-h-screen p-4">
+<div class="flex flex-col items-center min-h-dvh p-4">
     <!-- Status Card -->
     <div class="card bg-base-200 w-full max-w-md mb-8">
         <div class="card-body">

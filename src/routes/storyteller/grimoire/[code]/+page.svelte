@@ -71,7 +71,7 @@
 	<title>Grimoire</title>
 </svelte:head>
 
-<div class="h-screen flex flex-col overflow-hidden">
+<div class="h-dvh flex flex-col overflow-hidden">
 	<!-- Header -->
 	<header class="flex justify-between items-center px-6 py-3 bg-base-100 border-b border-base-300 shrink-0">
 		<div class="flex items-center gap-2">

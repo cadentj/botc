@@ -18,6 +18,6 @@
     });
 </script>
 
-<div class="flex justify-center items-center h-screen">
+<div class="flex justify-center items-center h-dvh">
     <PlayerJoinForm bind:name bind:lobbyCode codeProvided={!!prefillCode} />
 </div>
