@@ -1,6 +1,6 @@
 import type { RequestHandler } from "./$types";
 import { json, error } from "@sveltejs/kit";
-import { lobbies, getNextUnassignedCharacter } from "../../../lobbies-store";
+import { getLobby, setLobby, getNextUnassignedCharacter } from "../../../lobbies-store";
 import { CHARACTERS_BY_TYPE } from "$lib/botc-data/trouble-brewing.svelte";
 import type { Character } from "$lib/types/characters";
 
@@ -22,7 +22,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
         return error(400, "Missing player name");
     }
 
-    const lobby = lobbies.get(lobbyId.toUpperCase());
+    const lobby = await getLobby(lobbyId.toUpperCase());
     if (!lobby) {
         return error(404, "Lobby not found");
     }
@@ -54,6 +54,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
     }
 
     lobby.characterToPlayer[characterName] = playerName.trim();
+    await setLobby(lobby);
 
     const character = findCharacterByName(characterName);
     if (!character) {

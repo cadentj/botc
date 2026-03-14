@@ -25,6 +25,7 @@
 	},
 	"dependencies": {
 		"@lucide/svelte": "^0.555.0",
+		"@upstash/redis": "^1.37.0",
 		"@xyflow/svelte": "^1.4.2",
 		"daisyui": "^5.5.5"
 	}

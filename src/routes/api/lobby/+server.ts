@@ -1,6 +1,6 @@
 import type { RequestHandler } from "./$types";
 import { json } from "@sveltejs/kit";
-import { lobbies, type Lobby, type NewLobby } from "../lobbies-store";
+import { setLobby, type Lobby, type NewLobby } from "../lobbies-store";
 
 // Helper to generate 4-character lobby code
 function generateLobbyCode(): string {
@@ -21,9 +21,10 @@ export const POST: RequestHandler = async ({ request }) => {
         code,
         playerCount: body.playerCount,
         characterToPlayer: body.characterToPlayer,
+        createdAt: Date.now(),
     };
 
-    lobbies.set(lobby.code, lobby);
+    await setLobby(lobby);
 
     return json({ "code": code });
 };
