@@ -104,11 +104,12 @@
 			class="w-full md:w-2/3 h-full overflow-hidden md:block" 
 			class:hidden={activeTab === "roles"}
 		>
-			{#if helperMode}
-				<NightHelperCards />
-			{:else}
+			<div class="h-full w-full" class:hidden={helperMode}>
 				<Grimoire bind:characterToPlayer {lobbyCode} />
-			{/if}
+			</div>
+			<div class="h-full w-full" class:hidden={!helperMode}>
+				<NightHelperCards />
+			</div>
 		</div>
 	
 		<!-- Night Order -->

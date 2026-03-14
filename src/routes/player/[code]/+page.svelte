@@ -152,11 +152,8 @@
                         class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"
                     >
                         {#each CHARACTERS_BY_TYPE[charType] as char}
-                            {@const isYourRole = role?.name === char.name}
                             <div
-                                class="card flex flex-row gap-3 bg-base-200 p-3 text-left border-2"
-                                class:border-primary={isYourRole}
-                                class:border-transparent={!isYourRole}
+                                class="card flex flex-row gap-3 bg-base-200 p-3 text-left border-2 border-transparent"
                             >
                                 <char.icon size={16} class="min-w-5 h-5" />
                                 <div class="flex flex-1 flex-col">
@@ -165,11 +162,6 @@
                                     >
                                         <h3 class="font-medium text-sm">
                                             {char.name}
-                                            {#if isYourRole}
-                                                <span class="text-primary"
-                                                    >(You)</span
-                                                >
-                                            {/if}
                                         </h3>
 
                                         {#if char.firstNightOrder && !char.otherNightOrder}
