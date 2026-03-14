@@ -16,6 +16,7 @@
     } from "$lib/botc-data/trouble-brewing.svelte";
     import { onMount, onDestroy } from "svelte";
     import type { Character } from "$lib/types/characters";
+    import { Save, UserRoundX } from "@lucide/svelte";
 
     function findCharacterByName(name: string): Character | null {
         for (const characters of Object.values(CHARACTERS_BY_TYPE)) {
@@ -37,8 +38,19 @@
     let remainingSeconds = $state(5 * 60);
     let isPolling = $state(true);
     let lobbyNotFound = $state(false);
+    let assignmentModal: HTMLDialogElement;
+    let assignmentCharacterName = $state<string | null>(null);
+    let assignmentPlayerName = $state("");
+    let assignmentError = $state("");
+    let savingAssignment = $state(false);
     const POLL_DURATION = 5 * 60 * 1000; // 5 minutes
     const POLL_INTERVAL = 10 * 1000; // 10 seconds
+    const assignmentKnownPlayers = $derived(getKnownPlayers(characterToPlayer));
+    const assignmentOptionsId = $derived(
+        assignmentCharacterName
+            ? `player-options-${assignmentCharacterName.toLowerCase().replace(/\s+/g, "-")}`
+            : "player-options-assignment"
+    );
 
     function getKnownPlayers(charToPlayer: Record<string, string>): string[] {
         return [...new Set(
@@ -66,6 +78,77 @@
             countdownInterval = null;
         }
         isPolling = false;
+    }
+
+    function openAssignmentDialog(characterName: string) {
+        assignmentCharacterName = characterName;
+        assignmentPlayerName = characterToPlayer[characterName] ?? "";
+        assignmentError = "";
+        if (!assignmentModal?.open) {
+            assignmentModal?.showModal();
+        }
+    }
+
+    function clearAssignmentDialogState() {
+        assignmentError = "";
+        savingAssignment = false;
+        assignmentCharacterName = null;
+        assignmentPlayerName = "";
+    }
+
+    async function saveAssignment(event: SubmitEvent) {
+        event.preventDefault();
+
+        if (!assignmentCharacterName) {
+            assignmentError = "No character selected.";
+            return;
+        }
+
+        const playerName = assignmentPlayerName.trim();
+        if (!playerName) {
+            assignmentError = "Enter a player name to assign.";
+            return;
+        }
+
+        savingAssignment = true;
+        assignmentError = "";
+
+        try {
+            await updatePlayerAssignment(assignmentCharacterName, playerName);
+            assignmentModal?.close();
+        } catch (error) {
+            assignmentError =
+                error instanceof Error
+                    ? error.message
+                    : "Failed to update player assignment.";
+        } finally {
+            savingAssignment = false;
+        }
+    }
+
+    async function clearAssignment(event: MouseEvent) {
+        event.preventDefault();
+
+        if (!assignmentCharacterName) {
+            assignmentError = "No character selected.";
+            return;
+        }
+
+        savingAssignment = true;
+        assignmentError = "";
+
+        try {
+            await updatePlayerAssignment(assignmentCharacterName, "");
+            assignmentPlayerName = "";
+            assignmentModal?.close();
+        } catch (error) {
+            assignmentError =
+                error instanceof Error
+                    ? error.message
+                    : "Failed to remove player assignment.";
+        } finally {
+            savingAssignment = false;
+        }
     }
 
     function startPolling() {
@@ -123,7 +206,6 @@
     }
 
     function syncAssignments(newCharToPlayer: Record<string, string>) {
-        const knownPlayers = getKnownPlayers(newCharToPlayer);
         characterToPlayer = newCharToPlayer;
 
         if (nodes.length === 0 || nodes.length !== Object.keys(newCharToPlayer).length) {
@@ -139,9 +221,8 @@
                 data: {
                     ...data,
                     playerName,
-                    knownPlayers,
                     availableHelperTokens,
-                    updatePlayerAssignment,
+                    openAssignmentDialog,
                 } satisfies TokenData,
             };
         });
@@ -154,7 +235,6 @@
         const centerX = 300;
         const centerY = 300;
         const radius = 250;
-        const knownPlayers = getKnownPlayers(charToPlayer);
 
         const characters: Character[] = [];
         for (const characterName of Object.keys(charToPlayer)) {
@@ -178,9 +258,8 @@
                 data: {
                     character,
                     playerName,
-                    knownPlayers,
                     availableHelperTokens,
-                    updatePlayerAssignment,
+                    openAssignmentDialog,
                 } satisfies TokenData,
             };
         });
@@ -261,6 +340,74 @@
         </SvelteFlow>
     </div>
 {/if}
+
+<dialog class="modal" bind:this={assignmentModal} onclose={clearAssignmentDialogState}>
+    <div class="modal-box max-w-xs">
+        <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+                ✕
+            </button>
+        </form>
+        <h3 class="text-lg font-bold">
+            {#if assignmentCharacterName}
+                Assign player to {assignmentCharacterName}
+            {:else}
+                Assign player
+            {/if}
+        </h3>
+        <form class="mt-4 flex flex-col gap-2" onsubmit={saveAssignment}>
+            <label class="input input-sm input-bordered flex items-center gap-2">
+                <input
+                    class="grow text-sm"
+                    type="text"
+                    bind:value={assignmentPlayerName}
+                    list={assignmentKnownPlayers.length > 0
+                        ? assignmentOptionsId
+                        : undefined}
+                    placeholder="Player name"
+                />
+            </label>
+
+            {#if assignmentKnownPlayers.length > 0}
+                <datalist id={assignmentOptionsId}>
+                    {#each assignmentKnownPlayers as knownPlayer}
+                        <option value={knownPlayer}></option>
+                    {/each}
+                </datalist>
+            {/if}
+
+            <div class="flex items-center gap-2">
+                <button
+                    type="submit"
+                    class="btn btn-primary btn-sm flex-1"
+                    disabled={savingAssignment}
+                >
+                    <Save size={12} />
+                    <span>{savingAssignment ? "Saving..." : "Save"}</span>
+                </button>
+
+                {#if assignmentCharacterName && characterToPlayer[assignmentCharacterName]}
+                    <button
+                        type="button"
+                        class="btn btn-error btn-outline btn-sm"
+                        disabled={savingAssignment}
+                        onclick={clearAssignment}
+                    >
+                        <UserRoundX size={12} />
+                        <span>Remove</span>
+                    </button>
+                {/if}
+            </div>
+
+            {#if assignmentError}
+                <p class="text-xs text-error">{assignmentError}</p>
+            {/if}
+        </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
 
 <style>
     :global(.svelte-flow) {
