@@ -7,6 +7,7 @@
     import { BookOpen } from "@lucide/svelte";
 
     const PLAYER_NAME_KEY = "botc-player-name";
+    const ASTERISK_NOTE = "* Not on the first night.";
 
     const code = $page.params.code;
 
@@ -27,6 +28,10 @@
         }
         return null;
     });
+
+    const referenceHasAsteriskNote = Object.values(CHARACTERS_BY_TYPE)
+        .flat()
+        .some((char) => char.ability.includes("*"));
 
     onMount(async () => {
         const playerName = localStorage.getItem(PLAYER_NAME_KEY);
@@ -122,6 +127,11 @@
                             <p class="text-xs text-base-content/60 mt-1">
                                 {role.ability}
                             </p>
+                            {#if role.ability.includes("*")}
+                                <p class="text-[11px] text-base-content/50 mt-2">
+                                    {ASTERISK_NOTE}
+                                </p>
+                            {/if}
                         </div>
                     </div>
                 {/if}
@@ -132,68 +142,87 @@
 
 <!-- Character Reference Modal -->
 <dialog class="modal" bind:this={modal}>
-    <div class="modal-box max-w-5xl max-h-[80vh]">
-        <form method="dialog">
-            <button
-                class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                >✕</button
-            >
-        </form>
-        <h3 class="text-lg font-bold mb-4">Character Reference</h3>
+    <div
+        class="modal-box max-w-5xl max-h-[80vh] p-0 flex flex-col overflow-hidden"
+    >
+        <div
+            class="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-base-300 bg-base-100/95 px-6 py-4 backdrop-blur"
+        >
+            <div class="min-w-0">
+                <h3 class="text-lg font-bold">Character Reference</h3>
+                {#if referenceHasAsteriskNote}
+                    <p class="text-xs text-base-content/60 mt-1">
+                        {ASTERISK_NOTE}
+                    </p>
+                {/if}
+            </div>
+            <form method="dialog" class="shrink-0">
+                <button class="btn btn-sm btn-circle btn-ghost">✕</button>
+            </form>
+        </div>
 
-        <div class="flex flex-col gap-6 overflow-y-auto">
-            {#each ["townsfolk", "outsiders", "minions", "demons"] as type}
-                {@const charType = type as CharacterType}
-                <section class="flex flex-col gap-3">
-                    <div class="divider">
-                        {charType.charAt(0).toUpperCase() + charType.slice(1)}
-                    </div>
-                    <div
-                        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"
-                    >
-                        {#each CHARACTERS_BY_TYPE[charType] as char}
-                            <div
-                                class="card flex flex-row gap-3 bg-base-200 p-3 text-left border-2 border-transparent"
-                            >
-                                <char.icon size={16} class="min-w-5 h-5" />
-                                <div class="flex flex-1 flex-col">
-                                    <div
-                                        class="flex flex-row gap-2 justify-between items-center"
-                                    >
-                                        <h3 class="font-medium text-sm">
-                                            {char.name}
-                                        </h3>
+        <div class="flex-1 min-h-0 overflow-y-auto px-6 py-4">
+            <div class="flex flex-col gap-6">
+                {#each ["townsfolk", "outsiders", "minions", "demons"] as type}
+                    {@const charType = type as CharacterType}
+                    <section class="flex flex-col gap-3">
+                        <div class="divider">
+                            {charType.charAt(0).toUpperCase() + charType.slice(1)}
+                        </div>
+                        <div
+                            class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"
+                        >
+                            {#each CHARACTERS_BY_TYPE[charType] as char}
+                                <div
+                                    class="card flex flex-row gap-3 bg-base-200 p-3 text-left border-2 border-transparent"
+                                >
+                                    <char.icon size={16} class="min-w-5 h-5" />
+                                    <div class="flex flex-1 flex-col">
+                                        <div
+                                            class="flex flex-row gap-2 justify-between items-center"
+                                        >
+                                            <h3 class="font-medium text-sm">
+                                                {char.name}
+                                            </h3>
 
-                                        {#if char.firstNightOrder && !char.otherNightOrder}
-                                            <span
-                                                class="badge badge-xs badge-soft badge-primary"
-                                                >First Night</span
+                                            {#if char.firstNightOrder && !char.otherNightOrder}
+                                                <span
+                                                    class="badge badge-xs badge-soft badge-primary"
+                                                    >First Night</span
+                                                >
+                                            {/if}
+                                            {#if char.otherNightOrder}
+                                                <span
+                                                    class="badge badge-xs badge-soft badge-secondary"
+                                                    >Every Night</span
+                                                >
+                                            {/if}
+                                            {#if !char.firstNightOrder && !char.otherNightOrder}
+                                                <span
+                                                    class="badge badge-xs badge-soft badge-accent"
+                                                    >One Time</span
+                                                >
+                                            {/if}
+                                        </div>
+                                        <p
+                                            class="text-xs text-base-content/60 mt-1 line-clamp-3"
+                                        >
+                                            {char.ability}
+                                        </p>
+                                        {#if char.ability.includes("*")}
+                                            <p
+                                                class="text-[11px] text-base-content/50 mt-2"
                                             >
-                                        {/if}
-                                        {#if char.otherNightOrder}
-                                            <span
-                                                class="badge badge-xs badge-soft badge-secondary"
-                                                >Every Night</span
-                                            >
-                                        {/if}
-                                        {#if !char.firstNightOrder && !char.otherNightOrder}
-                                            <span
-                                                class="badge badge-xs badge-soft badge-accent"
-                                                >One Time</span
-                                            >
+                                                {ASTERISK_NOTE}
+                                            </p>
                                         {/if}
                                     </div>
-                                    <p
-                                        class="text-xs text-base-content/60 mt-1 line-clamp-3"
-                                    >
-                                        {char.ability}
-                                    </p>
                                 </div>
-                            </div>
-                        {/each}
-                    </div>
-                </section>
-            {/each}
+                            {/each}
+                        </div>
+                    </section>
+                {/each}
+            </div>
         </div>
     </div>
     <form method="dialog" class="modal-backdrop">

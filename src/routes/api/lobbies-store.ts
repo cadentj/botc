@@ -36,12 +36,73 @@ export async function deleteLobby(code: string): Promise<void> {
     await redis.del(lobbyKey(code));
 }
 
+export function normalizePlayerName(playerName: string): string {
+    return playerName.trim();
+}
+
+export function findAssignedCharacter(
+    lobby: Lobby,
+    playerName: string
+): string | null {
+    const normalizedPlayerName = normalizePlayerName(playerName);
+    if (!normalizedPlayerName) {
+        return null;
+    }
+
+    const existingEntry = Object.entries(lobby.characterToPlayer ?? {}).find(
+        ([_, assignedPlayerName]) =>
+            normalizePlayerName(assignedPlayerName ?? "") ===
+            normalizedPlayerName
+    );
+
+    return existingEntry?.[0] ?? null;
+}
+
+export function clearCharacterAssignment(
+    lobby: Lobby,
+    characterName: string
+): void {
+    if (characterName in (lobby.characterToPlayer ?? {})) {
+        lobby.characterToPlayer[characterName] = "";
+    }
+}
+
+export function assignPlayerToCharacter(
+    lobby: Lobby,
+    characterName: string,
+    playerName: string
+): string {
+    if (!(characterName in (lobby.characterToPlayer ?? {}))) {
+        throw new Error("Character not found in lobby");
+    }
+
+    const normalizedPlayerName = normalizePlayerName(playerName);
+    if (!normalizedPlayerName) {
+        throw new Error("Missing player name");
+    }
+
+    for (const [assignedCharacterName, assignedPlayerName] of Object.entries(
+        lobby.characterToPlayer ?? {}
+    )) {
+        if (
+            assignedCharacterName !== characterName &&
+            normalizePlayerName(assignedPlayerName ?? "") ===
+                normalizedPlayerName
+        ) {
+            lobby.characterToPlayer[assignedCharacterName] = "";
+        }
+    }
+
+    lobby.characterToPlayer[characterName] = normalizedPlayerName;
+    return normalizedPlayerName;
+}
+
 // Return the character ID if a character is available
 // Return null if no characters are available
 export function getNextUnassignedCharacter(lobby: Lobby): string | null {
     // Find first unassigned character (where value is empty string or null)
     const unassignedCharacter = Object.entries(lobby.characterToPlayer ?? {})
-        .find(([_, player]) => !player);
+        .find(([_, player]) => !normalizePlayerName(player ?? ""));
 
     if (!unassignedCharacter) return null;
 

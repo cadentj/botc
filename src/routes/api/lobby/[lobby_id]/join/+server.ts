@@ -1,6 +1,13 @@
 import type { RequestHandler } from "./$types";
 import { json, error } from "@sveltejs/kit";
-import { getLobby, setLobby, getNextUnassignedCharacter } from "../../../lobbies-store";
+import {
+    assignPlayerToCharacter,
+    findAssignedCharacter,
+    getLobby,
+    getNextUnassignedCharacter,
+    normalizePlayerName,
+    setLobby,
+} from "../../../lobbies-store";
 import { CHARACTERS_BY_TYPE } from "$lib/botc-data/trouble-brewing.svelte";
 import type { Character } from "$lib/types/characters";
 
@@ -17,8 +24,10 @@ function findCharacterByName(name: string): Character | null {
 export const POST: RequestHandler = async ({ params, request }) => {
     const { lobby_id: lobbyId } = params;
     const { playerName } = await request.json();
+    const normalizedPlayerName =
+        typeof playerName === "string" ? normalizePlayerName(playerName) : "";
 
-    if (!playerName) {
+    if (!normalizedPlayerName) {
         return error(400, "Missing player name");
     }
 
@@ -27,14 +36,13 @@ export const POST: RequestHandler = async ({ params, request }) => {
         return error(404, "Lobby not found");
     }
 
-    // Check if player already exists in this lobby
-    const existingEntry = Object.entries(lobby.characterToPlayer)
-        .find(([_, name]) => name === playerName.trim());
-
-    if (existingEntry) {
+    const existingCharacterName = findAssignedCharacter(
+        lobby,
+        normalizedPlayerName
+    );
+    if (existingCharacterName) {
         // Player already joined - return their existing character
-        const [characterName] = existingEntry;
-        const character = findCharacterByName(characterName);
+        const character = findCharacterByName(existingCharacterName);
         if (!character) {
             return error(500, "Character not found");
         }
@@ -53,7 +61,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
         return error(400, "No characters available");
     }
 
-    lobby.characterToPlayer[characterName] = playerName.trim();
+    assignPlayerToCharacter(lobby, characterName, normalizedPlayerName);
     await setLobby(lobby);
 
     const character = findCharacterByName(characterName);

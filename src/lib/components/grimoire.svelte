@@ -40,6 +40,14 @@
     const POLL_DURATION = 5 * 60 * 1000; // 5 minutes
     const POLL_INTERVAL = 10 * 1000; // 10 seconds
 
+    function getKnownPlayers(charToPlayer: Record<string, string>): string[] {
+        return [...new Set(
+            Object.values(charToPlayer)
+                .map((playerName) => playerName.trim())
+                .filter(Boolean)
+        )].sort((a, b) => a.localeCompare(b));
+    }
+
     // Get available helper tokens based on selected characters
     const availableHelperTokens = $derived.by(() => {
         const selectedCharacterNames = Object.keys(characterToPlayer);
@@ -60,6 +68,85 @@
         isPolling = false;
     }
 
+    function startPolling() {
+        stopPolling();
+        pollStartTime = Date.now();
+        remainingSeconds = Math.ceil(POLL_DURATION / 1000);
+        isPolling = true;
+        pollLobby();
+        pollInterval = setInterval(() => {
+            const elapsed = Date.now() - (pollStartTime || 0);
+            if (elapsed >= POLL_DURATION) {
+                stopPolling();
+                return;
+            }
+            pollLobby();
+        }, POLL_INTERVAL);
+
+        countdownInterval = setInterval(() => {
+            const elapsed = Date.now() - (pollStartTime || 0);
+            remainingSeconds = Math.max(
+                0,
+                Math.ceil((POLL_DURATION - elapsed) / 1000)
+            );
+            if (remainingSeconds <= 0) {
+                stopPolling();
+            }
+        }, 1000);
+    }
+
+    async function updatePlayerAssignment(
+        characterName: string,
+        playerName: string
+    ) {
+        const response = await fetch(`/api/lobby/${lobbyCode}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                characterName,
+                playerName,
+            }),
+        });
+
+        if (!response.ok) {
+            const data = await response.json().catch(() => null);
+            throw new Error(
+                data?.message || "Failed to update player assignment"
+            );
+        }
+
+        const data = await response.json();
+        syncAssignments(data.characterToPlayer || {});
+        startPolling();
+    }
+
+    function syncAssignments(newCharToPlayer: Record<string, string>) {
+        const knownPlayers = getKnownPlayers(newCharToPlayer);
+        characterToPlayer = newCharToPlayer;
+
+        if (nodes.length === 0 || nodes.length !== Object.keys(newCharToPlayer).length) {
+            nodes = createNodesFromCharacters(newCharToPlayer);
+            return;
+        }
+
+        nodes = nodes.map((node) => {
+            const data = node.data as TokenData;
+            const playerName = newCharToPlayer[data.character.name] || undefined;
+            return {
+                ...node,
+                data: {
+                    ...data,
+                    playerName,
+                    knownPlayers,
+                    availableHelperTokens,
+                    updatePlayerAssignment,
+                } satisfies TokenData,
+            };
+        });
+    }
+
     // Create nodes in circle layout from characterToPlayer mapping
     function createNodesFromCharacters(
         charToPlayer: Record<string, string>
@@ -67,6 +154,7 @@
         const centerX = 300;
         const centerY = 300;
         const radius = 250;
+        const knownPlayers = getKnownPlayers(charToPlayer);
 
         const characters: Character[] = [];
         for (const characterName of Object.keys(charToPlayer)) {
@@ -90,7 +178,9 @@
                 data: {
                     character,
                     playerName,
+                    knownPlayers,
                     availableHelperTokens,
+                    updatePlayerAssignment,
                 } satisfies TokenData,
             };
         });
@@ -111,28 +201,7 @@
 
             const data = await response.json();
             const newCharToPlayer = data.characterToPlayer || {};
-
-            // If this is the first poll (no nodes yet), create the initial layout
-            if (nodes.length === 0) {
-                characterToPlayer = newCharToPlayer;
-                nodes = createNodesFromCharacters(newCharToPlayer);
-            } else {
-                // Update existing nodes with player names
-                characterToPlayer = newCharToPlayer;
-                nodes = nodes.map((node) => {
-                    const data = node.data as TokenData;
-                    const playerName =
-                        newCharToPlayer[data.character.name] || undefined;
-                    return {
-                        ...node,
-                        data: {
-                            ...data,
-                            playerName,
-                            availableHelperTokens,
-                        } satisfies TokenData,
-                    };
-                });
-            }
+            syncAssignments(newCharToPlayer);
 
             // Stop polling if all characters have been assigned
             const allAssigned = Object.values(newCharToPlayer).every(
@@ -154,29 +223,7 @@
     let edges = $state<Edge[]>([]);
 
     onMount(() => {
-        // Start polling - first poll will create the nodes
-        pollStartTime = Date.now();
-        pollLobby();
-        pollInterval = setInterval(() => {
-            const elapsed = Date.now() - (pollStartTime || 0);
-            if (elapsed >= POLL_DURATION) {
-                stopPolling();
-                return;
-            }
-            pollLobby();
-        }, POLL_INTERVAL);
-
-        // Start countdown timer
-        countdownInterval = setInterval(() => {
-            const elapsed = Date.now() - (pollStartTime || 0);
-            remainingSeconds = Math.max(
-                0,
-                Math.ceil((POLL_DURATION - elapsed) / 1000)
-            );
-            if (remainingSeconds <= 0) {
-                stopPolling();
-            }
-        }, 1000);
+        startPolling();
     });
 
     onDestroy(() => {

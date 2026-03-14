@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Character, HelperToken } from '$lib/types/characters';
-	import { Skull, HeartPulse, X, Plus } from '@lucide/svelte';
+	import { Skull, HeartPulse, X, Plus, Settings2, UserRoundPlus, UserRoundX, Save } from '@lucide/svelte';
 	import { CHARACTERS_BY_TYPE } from '$lib/botc-data/trouble-brewing.svelte';
 
 	const typeColors: Record<string, string> = {
@@ -13,16 +13,26 @@
 	export interface TokenData extends Record<string, unknown> {
 		character: Character;
 		playerName?: string;
+		knownPlayers?: string[];
 		availableHelperTokens?: HelperToken[];
+		updatePlayerAssignment?: (characterName: string, playerName: string) => Promise<void>;
 	}
 
 	let { data }: { data: TokenData } = $props();
 
 	let isDead = $state(false);
 	let helperTokenIds = $state<string[]>([]);
+	let showAssignmentEditor = $state(false);
+	let manualPlayerName = $state('');
+	let assignmentError = $state('');
+	let savingAssignment = $state(false);
 
 	const IconComponent = $derived(data.character.icon);
+	const playerOptionsId = $derived(
+		`player-options-${data.character.name.toLowerCase().replace(/\s+/g, '-')}`
+	);
 	const availableHelperTokens = $derived(data.availableHelperTokens || []);
+	const knownPlayers = $derived(data.knownPlayers || []);
 	const assignedHelperTokens = $derived(
 		availableHelperTokens.filter((ht) => helperTokenIds.includes(ht.id))
 	);
@@ -33,6 +43,10 @@
 	function handleToggleDead(e: MouseEvent) {
 		e.stopPropagation();
 		isDead = !isDead;
+	}
+
+	function stopNodeInteraction(event: Event) {
+		event.stopPropagation();
 	}
 
 	function addHelperToken(helperTokenId: string) {
@@ -52,6 +66,66 @@
 		}
 		return null;
 	}
+
+	function toggleAssignmentEditor(event: MouseEvent) {
+		event.stopPropagation();
+		showAssignmentEditor = !showAssignmentEditor;
+		assignmentError = '';
+		manualPlayerName = data.playerName ?? '';
+	}
+
+	async function saveAssignment(event: SubmitEvent) {
+		event.preventDefault();
+		event.stopPropagation();
+
+		const playerName = manualPlayerName.trim();
+		if (!playerName) {
+			assignmentError = 'Enter a player name to assign.';
+			return;
+		}
+
+		if (!data.updatePlayerAssignment) {
+			assignmentError = 'Assignment controls are unavailable.';
+			return;
+		}
+
+		savingAssignment = true;
+		assignmentError = '';
+
+		try {
+			await data.updatePlayerAssignment(data.character.name, playerName);
+			showAssignmentEditor = false;
+		} catch (error) {
+			assignmentError =
+				error instanceof Error ? error.message : 'Failed to update player assignment.';
+		} finally {
+			savingAssignment = false;
+		}
+	}
+
+	async function clearAssignment(event: MouseEvent) {
+		event.preventDefault();
+		event.stopPropagation();
+
+		if (!data.updatePlayerAssignment) {
+			assignmentError = 'Assignment controls are unavailable.';
+			return;
+		}
+
+		savingAssignment = true;
+		assignmentError = '';
+
+		try {
+			await data.updatePlayerAssignment(data.character.name, '');
+			manualPlayerName = '';
+			showAssignmentEditor = false;
+		} catch (error) {
+			assignmentError =
+				error instanceof Error ? error.message : 'Failed to remove player assignment.';
+		} finally {
+			savingAssignment = false;
+		}
+	}
 </script>
 
 <div class="card relative bg-base-200 p-3 w-44 border-2 border-base-300" class:opacity-50={isDead}>
@@ -70,13 +144,82 @@
 
 	<div class="flex flex-row gap-3">
 		<IconComponent size={16} class="min-w-5 h-5 {typeColors[data.character.type] || ''}" />
-		<div class="flex flex-col">
-			<h3 class="font-medium text-sm">{data.character.name}</h3>
+		<div class="flex flex-1 flex-col gap-1">
+			<div class="flex items-start justify-between gap-2">
+				<h3 class="font-medium text-sm">{data.character.name}</h3>
+				<button
+					class="btn btn-ghost btn-xs btn-square shrink-0"
+					onclick={toggleAssignmentEditor}
+					onmousedown={stopNodeInteraction}
+					title={data.playerName ? 'Edit assigned player' : 'Assign player'}
+				>
+					{#if data.playerName}
+						<Settings2 size={12} />
+					{:else}
+						<UserRoundPlus size={12} />
+					{/if}
+				</button>
+			</div>
 			{#if data.playerName}
 				<span class="text-xs text-base-content/60">{data.playerName}</span>
+			{:else}
+				<span class="text-xs text-base-content/40">Unassigned</span>
 			{/if}
 		</div>
 	</div>
+
+	{#if showAssignmentEditor}
+		<form class="mt-3 flex flex-col gap-2" onsubmit={saveAssignment} onmousedown={stopNodeInteraction}>
+			<label class="input input-sm input-bordered flex items-center gap-2">
+				<input
+					class="grow text-sm"
+					type="text"
+					bind:value={manualPlayerName}
+					list={knownPlayers.length > 0 ? playerOptionsId : undefined}
+					placeholder="Player name"
+					onclick={stopNodeInteraction}
+					onmousedown={stopNodeInteraction}
+				/>
+			</label>
+
+			{#if knownPlayers.length > 0}
+				<datalist id={playerOptionsId}>
+					{#each knownPlayers as knownPlayer}
+						<option value={knownPlayer}></option>
+					{/each}
+				</datalist>
+			{/if}
+
+			<div class="flex items-center gap-2">
+				<button
+					type="submit"
+					class="btn btn-primary btn-xs flex-1"
+					disabled={savingAssignment}
+					onmousedown={stopNodeInteraction}
+				>
+					<Save size={12} />
+					<span>{savingAssignment ? 'Saving...' : 'Save'}</span>
+				</button>
+
+				{#if data.playerName}
+					<button
+						type="button"
+						class="btn btn-error btn-outline btn-xs"
+						disabled={savingAssignment}
+						onclick={clearAssignment}
+						onmousedown={stopNodeInteraction}
+					>
+						<UserRoundX size={12} />
+						<span>Remove</span>
+					</button>
+				{/if}
+			</div>
+
+			{#if assignmentError}
+				<p class="text-xs text-error">{assignmentError}</p>
+			{/if}
+		</form>
+	{/if}
 
 	{#if assignedHelperTokens.length > 0 || unassignedHelperTokens.length > 0}
 		<div class="flex flex-wrap gap-1 mt-3">

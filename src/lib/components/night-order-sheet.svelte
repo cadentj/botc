@@ -2,6 +2,8 @@
 	import type { Character } from '$lib/types/characters';
 	import { CHARACTERS_BY_TYPE } from '$lib/botc-data/trouble-brewing.svelte';
 
+	const ASTERISK_NOTE = '* Not on the first night.';
+
 	let { 
 		characters,
 		showAllRoles = false
@@ -41,6 +43,9 @@
 			.filter((c) => c.otherNightOrder !== undefined)
 			.sort((a, b) => (a.otherNightOrder || 0) - (b.otherNightOrder || 0))
 	);
+	const otherNightHasAsteriskNote = $derived(
+		otherNights.some((char) => char.ability.includes('*'))
+	);
 
 	// Characters without night actions
 	const noNightAction = $derived(
@@ -76,6 +81,9 @@
 
 			<section class="flex-1">
 				<div class="divider">Other Nights</div>
+				{#if otherNightHasAsteriskNote}
+					<p class="mb-3 text-xs text-base-content/60">{ASTERISK_NOTE}</p>
+				{/if}
 				{#if otherNights.length === 0}
 					<p class="text-base-content/70 italic">No characters wake on other nights</p>
 				{:else}
