@@ -22,7 +22,7 @@
 
 	let isDead = $state(false);
 	let helperTokenIds = $state<string[]>([]);
-	let showAssignmentEditor = $state(false);
+	let modal: HTMLDialogElement;
 	let manualPlayerName = $state('');
 	let assignmentError = $state('');
 	let savingAssignment = $state(false);
@@ -67,11 +67,11 @@
 		return null;
 	}
 
-	function toggleAssignmentEditor(event: MouseEvent) {
+	function openAssignmentModal(event: MouseEvent) {
 		event.stopPropagation();
-		showAssignmentEditor = !showAssignmentEditor;
 		assignmentError = '';
 		manualPlayerName = data.playerName ?? '';
+		modal.showModal();
 	}
 
 	async function saveAssignment(event: SubmitEvent) {
@@ -94,7 +94,7 @@
 
 		try {
 			await data.updatePlayerAssignment(data.character.name, playerName);
-			showAssignmentEditor = false;
+			modal.close();
 		} catch (error) {
 			assignmentError =
 				error instanceof Error ? error.message : 'Failed to update player assignment.';
@@ -118,7 +118,7 @@
 		try {
 			await data.updatePlayerAssignment(data.character.name, '');
 			manualPlayerName = '';
-			showAssignmentEditor = false;
+			modal.close();
 		} catch (error) {
 			assignmentError =
 				error instanceof Error ? error.message : 'Failed to remove player assignment.';
@@ -129,37 +129,37 @@
 </script>
 
 <div class="card relative bg-base-200 p-3 w-44 border-2 border-base-300" class:opacity-50={isDead}>
-	<button
-		class="absolute -top-2 -right-2 size-6 rounded-full bg-base-300 flex items-center justify-center"
-		onclick={handleToggleDead}
-		onmousedown={(e) => e.stopPropagation()}
-		title={isDead ? 'Mark as alive' : 'Mark as dead'}
-	>
-		{#if isDead}
-			<Skull size={12} class="text-red-500" />
-		{:else}
-			<HeartPulse size={12} class="text-green-500" />
-		{/if}
-	</button>
+	<div class="absolute -top-3 -right-3 flex items-center gap-1">
+		<button
+			class="size-6 rounded-full border-base-300 border-2 bg-base-200 flex items-center justify-center"
+			onclick={openAssignmentModal}
+			onmousedown={stopNodeInteraction}
+			title={data.playerName ? 'Edit assigned player' : 'Assign player'}
+		>
+			{#if data.playerName}
+				<Settings2 size={11} />
+			{:else}
+				<UserRoundPlus size={11} />
+			{/if}
+		</button>
+		<button
+			class="size-6 rounded-full  border-base-300 border-2 flex items-center justify-center"
+			onclick={handleToggleDead}
+			onmousedown={(e) => e.stopPropagation()}
+			title={isDead ? 'Mark as alive' : 'Mark as dead'}
+		>
+			{#if isDead}
+				<Skull size={11} class="text-red-500" />
+			{:else}
+				<HeartPulse size={11} class="text-green-500" />
+			{/if}
+		</button>
+	</div>
 
 	<div class="flex flex-row gap-3">
 		<IconComponent size={16} class="min-w-5 h-5 {typeColors[data.character.type] || ''}" />
 		<div class="flex flex-1 flex-col gap-1">
-			<div class="flex items-start justify-between gap-2">
-				<h3 class="font-medium text-sm">{data.character.name}</h3>
-				<button
-					class="btn btn-ghost btn-xs btn-square shrink-0"
-					onclick={toggleAssignmentEditor}
-					onmousedown={stopNodeInteraction}
-					title={data.playerName ? 'Edit assigned player' : 'Assign player'}
-				>
-					{#if data.playerName}
-						<Settings2 size={12} />
-					{:else}
-						<UserRoundPlus size={12} />
-					{/if}
-				</button>
-			</div>
+			<h3 class="font-medium text-sm">{data.character.name}</h3>
 			{#if data.playerName}
 				<span class="text-xs text-base-content/60">{data.playerName}</span>
 			{:else}
@@ -167,58 +167,6 @@
 			{/if}
 		</div>
 	</div>
-
-	{#if showAssignmentEditor}
-		<form class="mt-3 flex flex-col gap-2" onsubmit={saveAssignment}>
-			<label class="input input-sm input-bordered flex items-center gap-2">
-				<input
-					class="grow text-sm"
-					type="text"
-					bind:value={manualPlayerName}
-					list={knownPlayers.length > 0 ? playerOptionsId : undefined}
-					placeholder="Player name"
-					onmousedown={stopNodeInteraction}
-				/>
-			</label>
-
-			{#if knownPlayers.length > 0}
-				<datalist id={playerOptionsId}>
-					{#each knownPlayers as knownPlayer}
-						<option value={knownPlayer}></option>
-					{/each}
-				</datalist>
-			{/if}
-
-			<div class="flex items-center gap-2">
-				<button
-					type="submit"
-					class="btn btn-primary btn-xs flex-1"
-					disabled={savingAssignment}
-					onmousedown={stopNodeInteraction}
-				>
-					<Save size={12} />
-					<span>{savingAssignment ? 'Saving...' : 'Save'}</span>
-				</button>
-
-				{#if data.playerName}
-					<button
-						type="button"
-						class="btn btn-error btn-outline btn-xs"
-						disabled={savingAssignment}
-						onclick={clearAssignment}
-						onmousedown={stopNodeInteraction}
-					>
-						<UserRoundX size={12} />
-						<span>Remove</span>
-					</button>
-				{/if}
-			</div>
-
-			{#if assignmentError}
-				<p class="text-xs text-error">{assignmentError}</p>
-			{/if}
-		</form>
-	{/if}
 
 	{#if assignedHelperTokens.length > 0 || unassignedHelperTokens.length > 0}
 		<div class="flex flex-wrap gap-1 mt-3">
@@ -267,3 +215,64 @@
 		</div>
 	{/if}
 </div>
+
+<dialog class="modal" bind:this={modal}>
+	<div class="modal-box max-w-xs">
+		<form method="dialog">
+			<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+		</form>
+		<h3 class="text-lg font-bold">Assign player to {data.character.name}</h3>
+		<form class="mt-4 flex flex-col gap-2" onsubmit={saveAssignment}>
+			<label class="input input-sm input-bordered flex items-center gap-2">
+				<input
+					class="grow text-sm"
+					type="text"
+					bind:value={manualPlayerName}
+					list={knownPlayers.length > 0 ? playerOptionsId : undefined}
+					placeholder="Player name"
+					onmousedown={stopNodeInteraction}
+				/>
+			</label>
+
+			{#if knownPlayers.length > 0}
+				<datalist id={playerOptionsId}>
+					{#each knownPlayers as knownPlayer}
+						<option value={knownPlayer}></option>
+					{/each}
+				</datalist>
+			{/if}
+
+			<div class="flex items-center gap-2">
+				<button
+					type="submit"
+					class="btn btn-primary btn-sm flex-1"
+					disabled={savingAssignment}
+					onmousedown={stopNodeInteraction}
+				>
+					<Save size={12} />
+					<span>{savingAssignment ? 'Saving...' : 'Save'}</span>
+				</button>
+
+				{#if data.playerName}
+					<button
+						type="button"
+						class="btn btn-error btn-outline btn-sm"
+						disabled={savingAssignment}
+						onclick={clearAssignment}
+						onmousedown={stopNodeInteraction}
+					>
+						<UserRoundX size={12} />
+						<span>Remove</span>
+					</button>
+				{/if}
+			</div>
+
+			{#if assignmentError}
+				<p class="text-xs text-error">{assignmentError}</p>
+			{/if}
+		</form>
+	</div>
+	<form method="dialog" class="modal-backdrop">
+		<button>close</button>
+	</form>
+</dialog>
