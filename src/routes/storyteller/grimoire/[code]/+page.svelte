@@ -101,13 +101,13 @@
 	<div class="flex-1 flex overflow-hidden min-h-0">
 		<!-- Grimoire or Helper Cards -->
 		<div 
-			class="w-full md:w-2/3 h-full overflow-hidden md:block" 
+			class="w-full md:w-2/3 h-full overflow-hidden md:block relative" 
 			class:hidden={activeTab === "roles"}
 		>
-			<div class="h-full w-full" class:hidden={helperMode}>
+			<div class="absolute inset-0" class:invisible={helperMode} class:pointer-events-none={helperMode}>
 				<Grimoire bind:characterToPlayer {lobbyCode} />
 			</div>
-			<div class="h-full w-full" class:hidden={!helperMode}>
+			<div class="absolute inset-0" class:invisible={!helperMode} class:pointer-events-none={!helperMode}>
 				<NightHelperCards />
 			</div>
 		</div>
