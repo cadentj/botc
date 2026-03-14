@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Character, HelperToken } from '$lib/types/characters';
-	import { Skull, HeartPulse, X, Plus, Settings2, UserRoundPlus, UserRoundX, Save } from '@lucide/svelte';
+	import { Skull, HeartPulse, X, Plus, Settings2, UserRoundPlus } from '@lucide/svelte';
 	import { CHARACTERS_BY_TYPE } from '$lib/botc-data/trouble-brewing.svelte';
 
 	const typeColors: Record<string, string> = {
@@ -13,26 +13,17 @@
 	export interface TokenData extends Record<string, unknown> {
 		character: Character;
 		playerName?: string;
-		knownPlayers?: string[];
 		availableHelperTokens?: HelperToken[];
-		updatePlayerAssignment?: (characterName: string, playerName: string) => Promise<void>;
+		openAssignmentDialog?: (characterName: string) => void;
 	}
 
 	let { data }: { data: TokenData } = $props();
 
 	let isDead = $state(false);
 	let helperTokenIds = $state<string[]>([]);
-	let modal: HTMLDialogElement;
-	let manualPlayerName = $state('');
-	let assignmentError = $state('');
-	let savingAssignment = $state(false);
 
 	const IconComponent = $derived(data.character.icon);
-	const playerOptionsId = $derived(
-		`player-options-${data.character.name.toLowerCase().replace(/\s+/g, '-')}`
-	);
 	const availableHelperTokens = $derived(data.availableHelperTokens || []);
-	const knownPlayers = $derived(data.knownPlayers || []);
 	const assignedHelperTokens = $derived(
 		availableHelperTokens.filter((ht) => helperTokenIds.includes(ht.id))
 	);
@@ -69,62 +60,7 @@
 
 	function openAssignmentModal(event: MouseEvent) {
 		event.stopPropagation();
-		assignmentError = '';
-		manualPlayerName = data.playerName ?? '';
-		modal.showModal();
-	}
-
-	async function saveAssignment(event: SubmitEvent) {
-		event.preventDefault();
-		event.stopPropagation();
-
-		const playerName = manualPlayerName.trim();
-		if (!playerName) {
-			assignmentError = 'Enter a player name to assign.';
-			return;
-		}
-
-		if (!data.updatePlayerAssignment) {
-			assignmentError = 'Assignment controls are unavailable.';
-			return;
-		}
-
-		savingAssignment = true;
-		assignmentError = '';
-
-		try {
-			await data.updatePlayerAssignment(data.character.name, playerName);
-			modal.close();
-		} catch (error) {
-			assignmentError =
-				error instanceof Error ? error.message : 'Failed to update player assignment.';
-		} finally {
-			savingAssignment = false;
-		}
-	}
-
-	async function clearAssignment(event: MouseEvent) {
-		event.preventDefault();
-		event.stopPropagation();
-
-		if (!data.updatePlayerAssignment) {
-			assignmentError = 'Assignment controls are unavailable.';
-			return;
-		}
-
-		savingAssignment = true;
-		assignmentError = '';
-
-		try {
-			await data.updatePlayerAssignment(data.character.name, '');
-			manualPlayerName = '';
-			modal.close();
-		} catch (error) {
-			assignmentError =
-				error instanceof Error ? error.message : 'Failed to remove player assignment.';
-		} finally {
-			savingAssignment = false;
-		}
+		data.openAssignmentDialog?.(data.character.name);
 	}
 </script>
 
@@ -215,64 +151,3 @@
 		</div>
 	{/if}
 </div>
-
-<dialog class="modal" bind:this={modal}>
-	<div class="modal-box max-w-xs">
-		<form method="dialog">
-			<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-		</form>
-		<h3 class="text-lg font-bold">Assign player to {data.character.name}</h3>
-		<form class="mt-4 flex flex-col gap-2" onsubmit={saveAssignment}>
-			<label class="input input-sm input-bordered flex items-center gap-2">
-				<input
-					class="grow text-sm"
-					type="text"
-					bind:value={manualPlayerName}
-					list={knownPlayers.length > 0 ? playerOptionsId : undefined}
-					placeholder="Player name"
-					onmousedown={stopNodeInteraction}
-				/>
-			</label>
-
-			{#if knownPlayers.length > 0}
-				<datalist id={playerOptionsId}>
-					{#each knownPlayers as knownPlayer}
-						<option value={knownPlayer}></option>
-					{/each}
-				</datalist>
-			{/if}
-
-			<div class="flex items-center gap-2">
-				<button
-					type="submit"
-					class="btn btn-primary btn-sm flex-1"
-					disabled={savingAssignment}
-					onmousedown={stopNodeInteraction}
-				>
-					<Save size={12} />
-					<span>{savingAssignment ? 'Saving...' : 'Save'}</span>
-				</button>
-
-				{#if data.playerName}
-					<button
-						type="button"
-						class="btn btn-error btn-outline btn-sm"
-						disabled={savingAssignment}
-						onclick={clearAssignment}
-						onmousedown={stopNodeInteraction}
-					>
-						<UserRoundX size={12} />
-						<span>Remove</span>
-					</button>
-				{/if}
-			</div>
-
-			{#if assignmentError}
-				<p class="text-xs text-error">{assignmentError}</p>
-			{/if}
-		</form>
-	</div>
-	<form method="dialog" class="modal-backdrop">
-		<button>close</button>
-	</form>
-</dialog>
