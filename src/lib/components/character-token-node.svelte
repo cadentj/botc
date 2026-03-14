@@ -169,56 +169,56 @@
 	</div>
 
 	{#if showAssignmentEditor}
-		<form class="mt-3 flex flex-col gap-2" onsubmit={saveAssignment} onmousedown={stopNodeInteraction}>
-			<label class="input input-sm input-bordered flex items-center gap-2">
-				<input
-					class="grow text-sm"
-					type="text"
-					bind:value={manualPlayerName}
-					list={knownPlayers.length > 0 ? playerOptionsId : undefined}
-					placeholder="Player name"
-					onclick={stopNodeInteraction}
-					onmousedown={stopNodeInteraction}
-				/>
-			</label>
+		<div class="mt-3" onmousedown={stopNodeInteraction}>
+			<form class="flex flex-col gap-2" onsubmit={saveAssignment}>
+				<label class="input input-sm input-bordered flex items-center gap-2">
+					<input
+						class="grow text-sm"
+						type="text"
+						bind:value={manualPlayerName}
+						list={knownPlayers.length > 0 ? playerOptionsId : undefined}
+						placeholder="Player name"
+					/>
+				</label>
 
-			{#if knownPlayers.length > 0}
-				<datalist id={playerOptionsId}>
-					{#each knownPlayers as knownPlayer}
-						<option value={knownPlayer}></option>
-					{/each}
-				</datalist>
-			{/if}
+				{#if knownPlayers.length > 0}
+					<datalist id={playerOptionsId}>
+						{#each knownPlayers as knownPlayer}
+							<option value={knownPlayer}></option>
+						{/each}
+					</datalist>
+				{/if}
 
-			<div class="flex items-center gap-2">
-				<button
-					type="submit"
-					class="btn btn-primary btn-xs flex-1"
-					disabled={savingAssignment}
-					onmousedown={stopNodeInteraction}
-				>
-					<Save size={12} />
-					<span>{savingAssignment ? 'Saving...' : 'Save'}</span>
-				</button>
-
-				{#if data.playerName}
+				<div class="flex items-center gap-2">
 					<button
-						type="button"
-						class="btn btn-error btn-outline btn-xs"
+						type="submit"
+						class="btn btn-primary btn-xs flex-1"
 						disabled={savingAssignment}
-						onclick={clearAssignment}
 						onmousedown={stopNodeInteraction}
 					>
-						<UserRoundX size={12} />
-						<span>Remove</span>
+						<Save size={12} />
+						<span>{savingAssignment ? 'Saving...' : 'Save'}</span>
 					</button>
-				{/if}
-			</div>
 
-			{#if assignmentError}
-				<p class="text-xs text-error">{assignmentError}</p>
-			{/if}
-		</form>
+					{#if data.playerName}
+						<button
+							type="button"
+							class="btn btn-error btn-outline btn-xs"
+							disabled={savingAssignment}
+							onclick={clearAssignment}
+							onmousedown={stopNodeInteraction}
+						>
+							<UserRoundX size={12} />
+							<span>Remove</span>
+						</button>
+					{/if}
+				</div>
+
+				{#if assignmentError}
+					<p class="text-xs text-error">{assignmentError}</p>
+				{/if}
+			</form>
+		</div>
 	{/if}
 
 	{#if assignedHelperTokens.length > 0 || unassignedHelperTokens.length > 0}
