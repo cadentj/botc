@@ -14,8 +14,16 @@ export interface NewLobby {
 }
 
 const redis = new Redis({
-    url: env.KV_REST_API_URL ?? env.UPSTASH_REDIS_REST_URL ?? "",
-    token: env.KV_REST_API_TOKEN ?? env.UPSTASH_REDIS_REST_TOKEN ?? "",
+    url:
+        env.KV_REST_API_URL ??
+        env.STORAGE_KV_REST_API_URL ??
+        env.UPSTASH_REDIS_REST_URL ??
+        "",
+    token:
+        env.KV_REST_API_TOKEN ??
+        env.STORAGE_KV_REST_API_TOKEN ??
+        env.UPSTASH_REDIS_REST_TOKEN ??
+        "",
 });
 
 const TWO_HOURS_SEC = 2 * 60 * 60;
